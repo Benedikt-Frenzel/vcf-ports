@@ -47,7 +47,7 @@
     <section class="stats" aria-label="Snapshot summary" id="stats"></section>
   </section>
 
-  <div id="status" class="status" role="status">Loading the source snapshot…</div>
+  <div id="status" class="alert alert-info status" role="status">Loading the source snapshot…</div>
   <noscript><p>JavaScript is required for the interactive explorer. <a href="data/vcf-9.1.json">Download the source snapshot</a>.</p></noscript>
 
   <div id="explorer" hidden>
@@ -94,9 +94,9 @@
       <div class="card table-card">
         <div class="data-heading"><div><h2>Connection records</h2><p>Exact published endpoints. Expand a record for service details and provenance.</p></div><span id="list-count" class="count-badge"></span></div>
         <div class="data-controls">
-          <label>Sort by <select id="list-sort"><option value="product">Product</option><option value="source">Source</option><option value="destination">Destination</option><option value="port">Port</option><option value="protocol">Protocol</option></select></label>
-          <label>Order <select id="list-order"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label>
-          <label class="rows-control">Rows per page <select id="list-size"><option>20</option><option selected>40</option><option>80</option></select></label>
+          <label>Sort by <select id="list-sort" class="clr-select"><option value="product">Product</option><option value="source">Source</option><option value="destination">Destination</option><option value="port">Port</option><option value="protocol">Protocol</option></select></label>
+          <label>Order <select id="list-order" class="clr-select"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label>
+          <label class="rows-control">Rows per page <select id="list-size" class="clr-select"><option>20</option><option selected>40</option><option>80</option></select></label>
         </div>
         <div class="table-scroll" tabindex="0" aria-label="Scrollable connection table"><table class="table connection-table"><caption class="visually-hidden">Published connection records matching the current filters</caption><thead><tr><th scope="col">Product / release</th><th scope="col">Source</th><th scope="col">Destination</th><th scope="col">Port / protocol</th><th scope="col">Purpose &amp; details</th><th scope="col">Classification</th></tr></thead><tbody id="rows"></tbody></table></div>
         <div class="pagination"><span id="list-range"></span><button id="prev" class="btn btn-sm" type="button">Previous</button><span id="page" aria-live="polite"></span><button id="next" class="btn btn-sm" type="button">Next</button></div>
@@ -106,7 +106,7 @@
     <section id="matrix-view" hidden aria-label="Endpoint matrix">
       <div class="card matrix-card">
         <div class="data-heading"><div><h2>Endpoint matrix</h2><p>Sources down the left, destinations across the top. Select a count to open its records.</p></div><span id="matrix-count" class="count-badge"></span></div>
-        <div class="data-controls"><label>Endpoint order <select id="matrix-order"><option value="activity">Most published entries first</option><option value="alphabetical">Alphabetical</option></select></label></div>
+        <div class="data-controls"><label>Endpoint order <select id="matrix-order" class="clr-select"><option value="activity">Most published entries first</option><option value="alphabetical">Alphabetical</option></select></label></div>
         <div class="matrix-legend" aria-label="Published entry count legend"><span><i class="density-one"></i>1 entry</span><span><i class="density-few"></i>2–9 entries</span><span><i class="density-many"></i>10+ entries</span><span>— No matching entry</span></div>
         <div class="matrix-controls"><div role="group" aria-label="Source pages"><strong>Sources</strong><button id="source-prev" class="btn btn-sm" type="button" aria-label="Previous sources">←</button><span id="source-page" aria-live="polite"></span><button id="source-next" class="btn btn-sm" type="button" aria-label="Next sources">→</button></div><div role="group" aria-label="Destination pages"><strong>Destinations</strong><button id="dest-prev" class="btn btn-sm" type="button" aria-label="Previous destinations">←</button><span id="dest-page" aria-live="polite"></span><button id="dest-next" class="btn btn-sm" type="button" aria-label="Next destinations">→</button></div></div>
         <div id="matrix" class="table-scroll" tabindex="0" aria-label="Scrollable endpoint matrix"></div>
@@ -114,7 +114,7 @@
       </div>
     </section>
 
-    <p id="empty" class="empty" hidden>No matching connections. Try a broader search or reset the filters.</p>
+    <p id="empty" class="alert alert-info empty" hidden>No matching connections. Try a broader search or reset the filters.</p>
 
     <section id="external-domains" class="card domains-card" aria-label="External internet destinations">
       <div class="card-header">

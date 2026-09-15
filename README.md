@@ -2,6 +2,8 @@
 
 An English-language, static communication explorer using [Clarity Design](https://clarity.design/) (`@clr/ui` 17.9.0). Ready for GitHub Pages, including repository subpaths. No backend, runtime CDN, analytics, npm dependencies, or build bundler.
 
+Design alignment: all colors, radii, shadows, and typography derive from the vendored Clarity/CDS design tokens (`--cds-*`/`--clr-*`); Clarity components (header, cards, buttons, form fields, tables, alerts) are used with their native styling. Custom components without a CSS-only Clarity equivalent (the segmented header tabs, filter chips, domain badges, and the topology diagram) follow the same token palette.
+
 **Independent private project. Not affiliated with, endorsed by, or supported by Broadcom Inc. or any of its subsidiaries. Provided as-is, without warranty.** Product names and trademarks belong to their respective owners.
 
 ## Development with mise
