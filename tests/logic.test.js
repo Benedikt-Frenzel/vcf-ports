@@ -42,6 +42,7 @@ test('matrix axes rank actual directional records and retain exact labels', () =
 test('external domains classify owners, honour wildcards, and ignore version noise', () => {
   assert.equal(domainOwner('portal.pulse.broadcom.com'),'broadcom');
   assert.equal(domainOwner('*.prod.nsxti.vmware.com'),'vmware');
+  assert.equal(domainOwner('nsx.west.us.lastline.com'),'vmware');
   assert.equal(domainOwner('registry.k8s.io'),'other');
   const rows=[
     {id:'1',source:'SSP Node IP Pool',destination:'*.prod.nsxti.vmware.com',port:'443',protocol:'TCP',product:'vDefend',serviceDescription:'KB 327186 and version 9.1 must not leak domains.'},

@@ -39,8 +39,11 @@ export function matrixAxes(rows, order = 'activity') {
 const FQDN_PATTERN = /(?<![\w-])(\*\.)?((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|io|net|org|dev|ai|cloud|app|gov|edu))(?![\w-])/gi;
 const TLDS = new Set(['com','io','net','org','dev','ai','cloud','app','gov','edu']);
 export function domainOwner(domain) {
+  // VMware is a Broadcom division, and Lastline was acquired by VMware, so
+  // legacy lastline.com services (vDefend ATP cloud) group under VMware
+  // rather than under third-party domains.
   if (/(^|\.)broadcom\.com$/i.test(domain)) return 'broadcom';
-  if (/(^|\.)vmware\.com$/i.test(domain)) return 'vmware';
+  if (/(^|\.)vmware\.com$/i.test(domain) || /(^|\.)lastline\.com$/i.test(domain)) return 'vmware';
   return 'other';
 }
 export function domainsInText(text) {

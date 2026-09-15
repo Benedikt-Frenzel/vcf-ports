@@ -70,7 +70,7 @@ Matrix counts represent **source records**, not unique ports or firewall rules. 
 
 The refresh command runs only on explicit request, not on page load or deployment. It writes the snapshot atomically after successful retrieval. Review mapping, coverage, and row changes before committing a refresh. Public API schemas may change.
 
-The external-domains view derives its domain list only from text published in the snapshot (endpoint labels and service descriptions) and from the public, attributed KB 327186 article. Domains are never guessed or expanded beyond what the sources state, and the KB remains the authoritative list for depot and support URLs.
+The external-domains view derives its domain list only from text published in the snapshot (endpoint labels and service descriptions) and from the public, attributed KB 327186 article. Domains are never guessed or expanded beyond what the sources state, and the KB remains the authoritative list for depot and support URLs. Grouping treats vmware.com and legacy lastline.com (vDefend ATP cloud) as VMware-operated — VMware is a Broadcom division — while Dell/EMC, NVIDIA, Google, Microsoft, and CNCF domains remain third-party.
 
 **Do not apply this dataset directly as a firewall policy.** Validate against the official tool, current product documentation, deployment topology, and enabled features. The project provides no guarantee of completeness or accuracy.
 
