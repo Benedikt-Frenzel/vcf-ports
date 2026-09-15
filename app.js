@@ -1,5 +1,5 @@
 import { filterRows, toCSV, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
-import { COMPONENTS, filterByComponents, topologyLinks, topologyPath, uniquePorts } from './topology.js';
+import { COMPONENTS, componentForEndpoint, filterByComponents, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
@@ -7,12 +7,49 @@ const fields = ['search','product','release','protocol','classification','source
 let data, filtered = [], page = 0, sourcePage = 0, destPage = 0, view = 'diagram', selectedComponents = [];
 const componentById = new Map(COMPONENTS.map(component => [component.id, component]));
 const sourceSize = 15, destSize = 8;
-function options(id, values, title) {
-  $(id).replaceChildren(new Option(title, ''), ...values.map(v => new Option(v.name ?? v, v.id ?? v)));
+// Dropdown UX: every facet option carries its snapshot record count and,
+// where useful, is grouped (releases by product, endpoints by component).
+function setOptions(id, title, entries) {
+  const groups = new Map();
+  for (const entry of entries) {
+    const key = entry.group || '';
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(entry);
+  }
+  const fragment = document.createDocumentFragment();
+  fragment.append(new Option(title, ''));
+  for (const [group, list] of groups) {
+    const options = list.map(e => new Option(e.count != null ? `${e.label} (${e.count.toLocaleString('en')})` : e.label, e.value));
+    if (group) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = group;
+      optgroup.append(...options);
+      fragment.append(optgroup);
+    } else fragment.append(...options);
+  }
+  $(id).replaceChildren(fragment);
+}
+function countBy(rows, key) {
+  const counts = new Map();
+  for (const row of rows) counts.set(row[key], (counts.get(row[key]) || 0) + 1);
+  return counts;
+}
+function endpointEntries(rows, key) {
+  const counts = countBy(rows, key);
+  return [...counts.keys()].filter(Boolean).sort((a,b) => a.localeCompare(b, 'en', {numeric:true}))
+    .map(value => ({value, label: value, count: counts.get(value), group: componentById.get(componentForEndpoint(value))?.name || 'Other'}));
 }
 function releaseOptions() {
   const products = $('product').value ? data.products.filter(p => p.id === $('product').value) : data.products;
-  options('release', products.flatMap(p => p.releases.map(r => ({id:r.id,name:`${p.name} · ${r.name}`}))), 'All mapped releases');
+  const entries = products.flatMap(p => {
+    const rows = data.rows.filter(r => r.productId === p.id);
+    const counts = countBy(rows, 'releases');
+    return p.releases.map(release => {
+      const count = rows.filter(r => r.releases.some(r2 => r2.id === release.id)).length;
+      return {value: release.id, label: release.name, count, group: $('product').value ? '' : p.name};
+    }).filter(e => e.count);
+  });
+  setOptions('release', 'All mapped releases', entries);
 }
 function filters() { return Object.fromEntries(fields.map(k => [k, $(k).value])); }
 function saveState() {
@@ -20,6 +57,17 @@ function saveState() {
   if (view !== 'diagram') params.set('view', view);
   if (selectedComponents.length) params.set('components', selectedComponents.join(','));
   history.replaceState(null, '', `${location.pathname}${params.size ? '?' + params : ''}${location.hash}`);
+}
+const FILTER_LABELS = {product:'Product', release:'Release', protocol:'Protocol', classification:'Classification', source:'Source', destination:'Destination'};
+function renderFilterChips() {
+  const chips = [];
+  const add = (filter, label) => chips.push(`<button class="filter-chip" type="button" data-filter="${escape(filter)}" aria-label="Remove filter ${escape(label)}">${escape(label)}<span aria-hidden="true">×</span></button>`);
+  if ($('search').value.trim()) add('search', `Search: ${$('search').value.trim()}`);
+  for (const key of ['product','release','protocol','classification','source','destination'])
+    if ($(key).value) add(key, `${FILTER_LABELS[key]}: ${$(key).selectedOptions[0].textContent.replace(/ \(\d[\d,]*\)$/, '')}`);
+  for (const id of selectedComponents) add(`component:${id}`, componentById.get(id).name);
+  $('filter-chips').innerHTML = chips.join('');
+  $('filter-chips').hidden = !chips.length;
 }
 function render() {
   const baseRows = filterRows(data.rows, filters());
@@ -39,6 +87,7 @@ function render() {
   else if (view === 'matrix') renderMatrix();
   else renderTopology(baseRows);
   renderExternalDomains();
+  renderFilterChips();
   saveState();
 }
 function renderExternalDomains() {
@@ -119,7 +168,8 @@ function renderTopology(baseRows) {
     ['sddc','vcenter'],['sddc','nsx'],['vcenter','esx'],['vcenter','nsx'],['vcenter','vsan'],['vcenter','supervisor'],
     ['nsx','esx'],['nsx','supervisor'],['esx','vsan'],['esx','supervisor'],
     ['esx','depot'],['management','depot'],['depot','infrastructure'],
-    ['licensing','vcenter'],['licensing','nsx'],['licensing','private-ai'],['licensing','operations'],['licensing','hcx'],['licensing','identity']
+    ['licensing','vcenter'],['licensing','nsx'],['licensing','vdefend'],['licensing','operations'],['licensing','hcx'],['licensing','identity'],
+    ['hcx','vcenter'],['identity','infrastructure']
   ].map(pair => pairKey(...pair)));
   const touching = new Map(COMPONENTS.map(c => [c.id, 0]));
   for (const row of baseRows) for (const id of new Set(topologyPath(row))) touching.set(id, touching.get(id) + 1);
@@ -130,9 +180,9 @@ function renderTopology(baseRows) {
   }
   const zones = `<rect class="zone zone-fleet" x="25" y="20" width="1450" height="125" rx="14"/><text class="zone-title" x="48" y="48">FLEET SERVICES</text>
     <rect class="zone zone-instance" x="25" y="165" width="900" height="575" rx="14"/><text class="zone-title" x="48" y="195">VCF INSTANCE</text>
-    <rect class="zone zone-inner" x="50" y="210" width="850" height="145" rx="10"/><text class="zone-title inner-title" x="70" y="237">MANAGEMENT DOMAIN</text>
+    <rect class="zone zone-inner" x="50" y="210" width="850" height="250" rx="10"/><text class="zone-title inner-title" x="70" y="237">MANAGEMENT DOMAIN</text>
     <rect class="zone zone-inner" x="50" y="565" width="850" height="145" rx="10"/><text class="zone-title inner-title" x="70" y="592">WORKLOAD INFRASTRUCTURE</text>
-    <rect class="zone zone-platform" x="950" y="165" width="525" height="575" rx="14"/><text class="zone-title" x="975" y="195">PLATFORM SERVICES</text>
+    <rect class="zone zone-platform" x="950" y="165" width="525" height="575" rx="14"/><text class="zone-title" x="975" y="195">ADVANCED SERVICES</text>
     <rect class="zone zone-external" x="25" y="780" width="1450" height="125" rx="14"/><text class="zone-title" x="48" y="810">EXTERNAL SYSTEMS & SERVICES</text>`;
   const edgeLabels = [];
   const lineSvg = links.map(link => {
@@ -221,8 +271,11 @@ async function init() {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     data = await response.json();
     if (data.vcfVersion !== '9.1' || !data.rows?.length) throw new Error('Invalid snapshot');
-    options('product', data.products.map(p=>({id:p.id,name:p.name})), 'All VCF 9.1 products');
-    for (const key of ['protocol','classification','source','destination']) options(key, unique(data.rows.map(r=>r[key]).filter(Boolean)), `All ${key === 'classification' ? 'classifications' : key + 's'}`);
+    setOptions('product', 'All VCF 9.1 products', [...data.products].sort((a,b) => a.name.localeCompare(b.name, 'en')).map(p => ({value: p.id, label: p.name, count: p.rowCount})));
+    for (const key of ['protocol','classification'])
+      setOptions(key, `All ${key === 'classification' ? 'classifications' : key + 's'}`, [...countBy(data.rows, key)].filter(([value]) => value).sort((a,b) => a[0].localeCompare(b[0], 'en')).map(([value,count]) => ({value, label: value, count})));
+    setOptions('source', 'All source endpoints', endpointEntries(data.rows, 'source'));
+    setOptions('destination', 'All destination endpoints', endpointEntries(data.rows, 'destination'));
     const params = new URLSearchParams(location.search);
     for (const key of fields.filter(k=>k!=='release')) if (params.has(key)) $(key).value=params.get(key);
     releaseOptions(); if (params.has('release')) $('release').value=params.get('release');
@@ -235,6 +288,17 @@ async function init() {
       if(key==='product') releaseOptions();
       page=sourcePage=destPage=0; render();
     }));
+    $('filter-chips').addEventListener('click', event => {
+      const chip = event.target.closest('.filter-chip');
+      if (!chip) return;
+      const filter = chip.dataset.filter;
+      if (filter.startsWith('component:')) selectedComponents = selectedComponents.filter(id => id !== filter.slice(10));
+      else {
+        $(filter).value = '';
+        if (filter === 'product') releaseOptions();
+      }
+      page=sourcePage=destPage=0; render();
+    });
     $('reset').addEventListener('click',()=>{fields.forEach(k=>$(k).value='');selectedComponents=[];releaseOptions();page=sourcePage=destPage=0;render();});
     $('clear-components').addEventListener('click',()=>{selectedComponents=[];page=sourcePage=destPage=0;render();});
     $('show-connections').addEventListener('click',()=>{view='list';page=0;render();$('list-tab').focus();});

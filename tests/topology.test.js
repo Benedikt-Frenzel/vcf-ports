@@ -19,6 +19,8 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'HCX Manager':'hcx',
     'DSM Database Cluster Node':'dsm',
     'Avi Controller':'avi',
+    'SSP Node IP Pool':'vdefend',
+    'MPS VPN Gateway VM':'private-ai',
     'Cyber Recovery Connector':'recovery',
     'Management Workstations':'clients',
     'nsx.lastline.com':'infrastructure',

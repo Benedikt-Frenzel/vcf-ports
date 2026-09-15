@@ -26,6 +26,24 @@ try:
         page.evaluate('document.fonts.ready')
         assert 'Metropolis' in page.locator('body').evaluate('(e)=>getComputedStyle(e).fontFamily')
         assert page.locator('body').evaluate('(e)=>getComputedStyle(e).getPropertyValue("--clr-font")').strip()
+        # Prominent segmented tabs with icons, sticky toolbar.
+        assert page.locator('.view-tab .tab-icon').count()==3
+        assert page.locator('.view-tab.active').count()==1
+        assert 'sticky' in page.locator('.toolbar').evaluate('(e)=>getComputedStyle(e).position')
+        # Dropdown UX: counts in options, endpoints grouped by component.
+        first_source=page.locator('#source option').nth(1)
+        assert first_source.evaluate(r'(o)=>/\s\(\d[\d,]*\)$/.test(o.textContent)')
+        assert page.locator('#source optgroup').count()>0
+        assert page.locator('#release optgroup').count()>0
+        # Filter chips: appear per active filter, removable individually.
+        assert page.locator('.filter-chip').count()>=1  # vcenter component from URL
+        page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')  # VMware vDefend
+        assert page.locator('.filter-chip').count()==2
+        page.locator('.filter-chip',has_text='VMware vDefend').click()
+        assert page.locator('.filter-chip').count()==1
+        page.locator('.filter-chip').click()
+        assert page.locator('.filter-chip').is_hidden()
+        page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
         page.locator('#path-ports').scroll_into_view_if_needed()
@@ -80,7 +98,7 @@ try:
         assert page.locator('.domain-badge.broadcom').count()>0
         page.locator('#external-domains').scroll_into_view_if_needed()
         page.screenshot(path=str(shots/'domains.png'))
-        page.locator('#product').select_option(label='VMware vDefend')
+        page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')
         assert page.locator('.domain-row').count()<25
         page.locator('#reset').click()
         page.set_viewport_size({'width':390,'height':844})
