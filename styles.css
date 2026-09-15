@@ -18,12 +18,18 @@
   --vp-border-soft:#e7edf1;
   --vp-radius:10px;
   --vp-shadow:0 1px 2px rgba(18,37,47,.05),0 6px 20px rgba(18,37,47,.06);
+  /* Clarity font tokens — clr-ui only declares these under :root [cds-theme],
+     so we redeclare them on :root to keep typography valid even without the attribute. */
+  --clr-metropolis-font-family:"Metropolis","Avenir Next","Helvetica Neue",Arial,sans-serif;
+  --clr-body-font:var(--clr-metropolis-font-family);
+  --clr-display-font:var(--clr-metropolis-font-family);
+  --clr-font:var(--clr-body-font);
 }
-body{
+body,body:not([cds-text]){
   margin:0;
   background:var(--vp-canvas);
   color:var(--vp-ink);
-  font-family:"Metropolis","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  font-family:var(--clr-font);
   line-height:1.5;
 }
 [hidden]{display:none!important}
