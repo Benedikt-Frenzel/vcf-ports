@@ -94,7 +94,9 @@ function renderTopology(baseRows) {
     ['logs','management'],['networks','vcenter'],['networks','nsx'],
     ['management','sddc'],['management','vcenter'],['management','nsx'],
     ['sddc','vcenter'],['sddc','nsx'],['vcenter','esx'],['vcenter','nsx'],['vcenter','vsan'],['vcenter','supervisor'],
-    ['nsx','esx'],['nsx','supervisor'],['esx','vsan'],['esx','supervisor']
+    ['nsx','esx'],['nsx','supervisor'],['esx','vsan'],['esx','supervisor'],
+    ['esx','depot'],['management','depot'],['depot','infrastructure'],
+    ['licensing','vcenter'],['licensing','nsx'],['licensing','private-ai'],['licensing','operations'],['licensing','hcx'],['licensing','identity']
   ].map(pair => pairKey(...pair)));
   const touching = new Map(COMPONENTS.map(c => [c.id, 0]));
   for (const row of baseRows) for (const id of new Set(topologyPath(row))) touching.set(id, touching.get(id) + 1);
@@ -109,6 +111,7 @@ function renderTopology(baseRows) {
     <rect class="zone zone-inner" x="50" y="565" width="850" height="145" rx="10"/><text class="zone-title inner-title" x="70" y="592">WORKLOAD INFRASTRUCTURE</text>
     <rect class="zone zone-platform" x="950" y="165" width="525" height="575" rx="14"/><text class="zone-title" x="975" y="195">PLATFORM SERVICES</text>
     <rect class="zone zone-external" x="25" y="780" width="1450" height="125" rx="14"/><text class="zone-title" x="48" y="810">EXTERNAL SYSTEMS & SERVICES</text>`;
+  const edgeLabels = [];
   const lineSvg = links.map(link => {
     const exact = selectedComponents.length === 2 && selectedComponents.includes(link.source) && selectedComponents.includes(link.destination);
     const incident = selectedComponents.length === 1 && (link.source === selectedComponents[0] || link.destination === selectedComponents[0]);
@@ -124,7 +127,8 @@ function renderTopology(baseRows) {
     const markers = `${link.directions.has(`${link.destination}>${link.source}`) ? ' marker-start="url(#path-arrow)"' : ''}${link.directions.has(`${link.source}>${link.destination}`) ? ' marker-end="url(#path-arrow)"' : ''}`;
     const ports=[...link.ports].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
     const label=exact ? `${ports.slice(0,3).map(port=>port.replace(' / ','/')).join(' · ')}${ports.length>3?` · +${ports.length-3}`:''}` : incident ? `${ports.length} port / protocol ${ports.length===1?'label':'labels'}` : '';
-    return `<g class="edge ${exact||incident?'highlighted':'backbone'}" data-source="${link.source}" data-destination="${link.destination}" tabindex="0" role="button" aria-label="Communication path ${escape(a.name)} and ${escape(b.name)}: ${link.count} entries, ${ports.length} port and protocol labels"><title>${escape(`${a.name} ↔ ${b.name}: ${ports.join(', ')}`)}</title><path class="link-hit" d="${path}"/><path class="link" d="${path}"${markers}/>${label?`<text class="edge-label" x="${mx}" y="${my-8}">${escape(label)}</text>`:''}</g>`;
+    if (label) edgeLabels.push(`<text class="edge-label" x="${mx}" y="${my-8}">${escape(label)}</text>`);
+    return `<g class="edge ${exact||incident?'highlighted':'backbone'}" data-source="${link.source}" data-destination="${link.destination}" tabindex="0" role="button" aria-label="Communication path ${escape(a.name)} and ${escape(b.name)}: ${link.count} entries, ${ports.length} port and protocol labels"><title>${escape(`${a.name} ↔ ${b.name}: ${ports.join(', ')}`)}</title><path class="link-hit" d="${path}"/><path class="link" d="${path}"${markers}/></g>`;
   }).join('');
   const nodeSvg = COMPONENTS.map(component => {
     const selected=selectedComponents.includes(component.id), isConnected=connected.has(component.id);
@@ -132,7 +136,7 @@ function renderTopology(baseRows) {
     const lines=splitLabel(component.name), firstY=component.y+(lines.length===1?25:18), cx=component.x+component.w/2;
     return `<g class="node ${state}" data-component="${component.id}" tabindex="0" role="button" aria-pressed="${selected}" aria-label="${escape(component.name)}, ${touching.get(component.id)} matching entries"><rect x="${component.x}" y="${component.y}" width="${component.w}" height="64" rx="7"/><text text-anchor="middle" x="${cx}" y="${firstY}">${lines.map((line,index)=>`<tspan x="${cx}" dy="${index?15:0}">${escape(line)}</tspan>`).join('')}<tspan class="node-count" x="${cx}" y="${component.y+53}">${touching.get(component.id)} matching entries</tspan></text></g>`;
   }).join('');
-  $('topology').innerHTML = '<defs><filter id="box-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity=".16"/></filter><marker id="path-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>' + zones + lineSvg + nodeSvg;
+  $('topology').innerHTML = '<defs><filter id="box-shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity=".16"/></filter><marker id="path-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="context-stroke"/></marker></defs>' + zones + lineSvg + nodeSvg + `<g class="edge-labels" aria-hidden="true">${edgeLabels.join('')}</g>`;
   const selectComponent = id => {
     selectedComponents = selectedComponents.includes(id) ? selectedComponents.filter(value=>value!==id) : selectedComponents.length < 2 ? [...selectedComponents,id] : [id];
     page=sourcePage=destPage=0; render();

@@ -21,6 +21,11 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'Avi Controller':'avi',
     'Cyber Recovery Connector':'recovery',
     'Management Workstations':'clients',
+    'Software Depot':'depot',
+    'Offline Depot ':'infrastructure',
+    'License Hub Node IP Pool':'licensing',
+    'License Server Management IP address':'licensing',
+    'VCF Installer Management IP address':'management',
     'DNS Resolvers':'infrastructure'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
