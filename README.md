@@ -38,8 +38,9 @@ Pull requests run validation without deployment. All asset paths are relative, s
 - Search across ports, endpoints, service descriptions, products, and releases; multiple search words use AND semantics.
 - Product, exact mapped release, protocol, classification, source, and destination filters.
 - Interactive infrastructure diagram inspired by the official VCF 9.1 Fleet Latency diagram, with nested Fleet Services, Management Domain, Workload Infrastructure, Platform Services, and External Systems boxes. Select a component to draw its direct paths; select a connected box or path to isolate it and label its ports/protocols directly on the link.
-- Paginated connection list with original service descriptions and source record IDs.
-- Source × destination matrix with independently paginated axes; select a populated cell to inspect its connections.
+- Compact, expandable port groups by direction and protocol, with exact label counts and an expand/collapse-all control.
+- Sortable connection list with separate endpoint columns, 20/40/80 rows per page, and expandable original service descriptions and source metadata.
+- Source × destination matrix with independently paginated axes, count shading, and activity/alphabetical ordering; select a populated cell to inspect its connections.
 - Filtered CSV export with quoting, UTF-8 BOM, and spreadsheet formula mitigation.
 - Shareable URL query parameters for filters and selected view.
 - Visible source timestamp, product/release coverage, snapshot download, and independence disclaimer.
@@ -77,7 +78,7 @@ The refresh command runs only on explicit request, not on page load or deploymen
 - `data/vcf-9.1.json`: source snapshot and coverage metadata.
 - `vendor/`: locally hosted CDS design tokens, Clarity CSS, and upstream licenses.
 - `scripts/`: snapshot refresh and static build.
-- `tests/`: dependency-free Node tests.
+- `tests/`: dependency-free Node tests and an optional Camoufox UI smoke test.
 - `mise.toml`: development tools and tasks.
 
 ## Third-party notices
@@ -86,4 +87,6 @@ Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui
 
 ## Verification
 
-`mise run build` runs the automated data/logic tests and syntax checks. Browser-level visual and accessibility testing is separate; it has not been performed in this environment because no Cameofox browser tool is attached.
+`mise run build` runs the automated data/logic tests and syntax checks. For the optional browser smoke test, build first, then run `python tests/ui_smoke.py` using a Python environment with Camoufox and its browser installed. It serves `dist/` on an ephemeral localhost port, checks port-group expansion, list sorting/paging/details, matrix drilldown, URL restoration, empty states, and mobile overflow, and saves screenshots to a temporary directory. It uses a fresh browser context, not a personal profile. Camoufox is not required by the site or the normal build.
+
+Desktop and mobile screenshots have been reviewed with Camoufox; this is not a comprehensive accessibility audit.

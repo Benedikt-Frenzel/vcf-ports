@@ -19,6 +19,20 @@ export function toCSV(rows) {
   const keys = ['product', 'releases', 'source', 'destination', 'port', 'protocol', 'purpose', 'serviceDescription', 'classification', 'id', 'publishDate'];
   return '\uFEFF' + [keys.map(csvCell).join(','), ...rows.map(r => keys.map(k => csvCell(k === 'releases' ? r.releases.map(v => v.name).join('; ') : r[k])).join(','))].join('\r\n');
 }
+// Sort a copy: presentation order must not mutate the snapshot or CSV data.
+export function sortRows(rows, key = 'product', direction = 'asc') {
+  const supported = ['product', 'source', 'destination', 'port', 'protocol'];
+  if (!supported.includes(key)) return [...rows];
+  return [...rows].sort((a, b) => String(a[key] ?? '').localeCompare(String(b[key] ?? ''), 'en', {numeric:true}) * (direction === 'desc' ? -1 : 1));
+}
+export function matrixAxes(rows, order = 'activity') {
+  return ['source', 'destination'].map(key => {
+    const totals = new Map();
+    for (const row of rows) totals.set(row[key], (totals.get(row[key]) || 0) + 1);
+    return [...totals.keys()].sort((a, b) =>
+      (order === 'activity' ? totals.get(b) - totals.get(a) : 0) || a.localeCompare(b, 'en', {numeric:true}));
+  });
+}
 export function matrixCounts(rows) {
   const counts = new Map();
   for (const row of rows) {

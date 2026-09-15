@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" cds-theme="light">
+<html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="An independent, interactive VCF 9.1 ports and communication matrix based on Broadcom's public Ports and Protocols tool.">
@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="vendor/cds-global.min.css"><link rel="stylesheet" href="vendor/clr-ui.min.css"><link rel="stylesheet" href="styles.css">
   <script type="module" src="app.js"></script>
 </head>
-<body>
+<body cds-theme="light">
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="header header-6 site-header">
@@ -90,16 +90,25 @@
 
     <section id="list-view" hidden aria-label="Connection list">
       <div class="card table-card">
-        <div class="table-scroll" tabindex="0" aria-label="Scrollable connection table"><table class="table"><thead><tr><th>Product / release</th><th>Source → destination</th><th>Port / protocol</th><th>Purpose &amp; service</th><th>Classification</th></tr></thead><tbody id="rows"></tbody></table></div>
-        <div class="pagination"><button id="prev" class="btn btn-sm" type="button">Previous</button><span id="page"></span><button id="next" class="btn btn-sm" type="button">Next</button></div>
+        <div class="data-heading"><div><h2>Connection records</h2><p>Exact published endpoints. Expand a record for service details and provenance.</p></div><span id="list-count" class="count-badge"></span></div>
+        <div class="data-controls">
+          <label>Sort by <select id="list-sort"><option value="product">Product</option><option value="source">Source</option><option value="destination">Destination</option><option value="port">Port</option><option value="protocol">Protocol</option></select></label>
+          <label>Order <select id="list-order"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label>
+          <label class="rows-control">Rows per page <select id="list-size"><option>20</option><option selected>40</option><option>80</option></select></label>
+        </div>
+        <div class="table-scroll" tabindex="0" aria-label="Scrollable connection table"><table class="table connection-table"><caption class="visually-hidden">Published connection records matching the current filters</caption><thead><tr><th scope="col">Product / release</th><th scope="col">Source</th><th scope="col">Destination</th><th scope="col">Port / protocol</th><th scope="col">Purpose &amp; details</th><th scope="col">Classification</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="pagination"><span id="list-range"></span><button id="prev" class="btn btn-sm" type="button">Previous</button><span id="page" aria-live="polite"></span><button id="next" class="btn btn-sm" type="button">Next</button></div>
       </div>
     </section>
 
     <section id="matrix-view" hidden aria-label="Endpoint matrix">
       <div class="card matrix-card">
-        <p class="view-help">Rows = source, columns = destination. Numbers count matching published entries, not unique firewall rules. Select a cell to inspect its connections. “—” means no matching entry, not that communication is unnecessary. “Both” is preserved as classification; reverse connections are not inferred.</p>
-        <div class="matrix-controls"><button id="source-prev" class="btn btn-sm" type="button">← Sources</button><span id="source-page"></span><button id="source-next" class="btn btn-sm" type="button">Sources →</button><button id="dest-prev" class="btn btn-sm" type="button">← Destinations</button><span id="dest-page"></span><button id="dest-next" class="btn btn-sm" type="button">Destinations →</button></div>
+        <div class="data-heading"><div><h2>Endpoint matrix</h2><p>Sources down the left, destinations across the top. Select a count to open its records.</p></div><span id="matrix-count" class="count-badge"></span></div>
+        <div class="data-controls"><label>Endpoint order <select id="matrix-order"><option value="activity">Most published entries first</option><option value="alphabetical">Alphabetical</option></select></label></div>
+        <div class="matrix-legend" aria-label="Published entry count legend"><span><i class="density-one"></i>1 entry</span><span><i class="density-few"></i>2–9 entries</span><span><i class="density-many"></i>10+ entries</span><span>— No matching entry</span></div>
+        <div class="matrix-controls"><div role="group" aria-label="Source pages"><strong>Sources</strong><button id="source-prev" class="btn btn-sm" type="button" aria-label="Previous sources">←</button><span id="source-page" aria-live="polite"></span><button id="source-next" class="btn btn-sm" type="button" aria-label="Next sources">→</button></div><div role="group" aria-label="Destination pages"><strong>Destinations</strong><button id="dest-prev" class="btn btn-sm" type="button" aria-label="Previous destinations">←</button><span id="dest-page" aria-live="polite"></span><button id="dest-next" class="btn btn-sm" type="button" aria-label="Next destinations">→</button></div></div>
         <div id="matrix" class="table-scroll" tabindex="0" aria-label="Scrollable endpoint matrix"></div>
+        <p class="view-help">Counts are published entries, not unique firewall rules. “—” does not mean communication is unnecessary. Reverse connections are never inferred, including entries classified as “Both”.</p>
       </div>
     </section>
 

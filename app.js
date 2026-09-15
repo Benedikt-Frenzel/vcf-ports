@@ -1,4 +1,4 @@
-import { filterRows, toCSV, matrixCounts } from './logic.js';
+import { filterRows, toCSV, matrixCounts, matrixAxes, sortRows } from './logic.js';
 import { COMPONENTS, filterByComponents, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -6,7 +6,7 @@ const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, '
 const fields = ['search','product','release','protocol','classification','source','destination'];
 let data, filtered = [], page = 0, sourcePage = 0, destPage = 0, view = 'diagram', selectedComponents = [];
 const componentById = new Map(COMPONENTS.map(component => [component.id, component]));
-const pageSize = 40, sourceSize = 15, destSize = 8;
+const sourceSize = 15, destSize = 8;
 function options(id, values, title) {
   $(id).replaceChildren(new Option(title, ''), ...values.map(v => new Option(v.name ?? v, v.id ?? v)));
 }
@@ -41,25 +41,31 @@ function render() {
   saveState();
 }
 function renderList() {
+  const pageSize = Number($('list-size').value);
+  const sorted = sortRows(filtered, $('list-sort').value, $('list-order').value);
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   page = Math.min(page, pages - 1);
-  $('rows').innerHTML = filtered.slice(page*pageSize,(page+1)*pageSize).map(r => `<tr>
-    <td><strong>${escape(r.product)}</strong><span class="sub">${r.releases.map(v => escape(v.name)).join(' · ')}</span><details><summary>Source record</summary><span class="sub">ID: ${escape(r.id)}<br>Published: ${escape(r.publishDate || 'Not specified')}</span><a href="https://ports.broadcom.com/" target="_blank" rel="noopener">Verify at official source ↗</a></details></td>
-    <td>${escape(r.source)}<div class="route-arrow" aria-label="to">↓</div>${escape(r.destination)}</td>
-    <td><span class="port">${escape(r.port || 'Not specified')}</span><span class="sub">${escape(r.protocol || 'Not specified')}</span></td>
-    <td><strong>${escape(r.purpose || 'Not specified')}</strong><div class="description">${escape(r.serviceDescription)}</div></td>
-    <td><span class="label">${escape(r.classification || 'Not specified')}</span></td></tr>`).join('');
+  $('rows').innerHTML = sorted.slice(page*pageSize,(page+1)*pageSize).map(r => `<tr>
+    <td><strong>${escape(r.product)}</strong><span class="sub">${r.releases.map(v => escape(v.name)).join(' · ')}</span></td>
+    <td class="endpoint-name">${escape(r.source)}</td>
+    <td class="endpoint-name">${escape(r.destination)}</td>
+    <td><span class="port">${escape(r.port || 'Not specified')}</span><span class="protocol-badge">${escape(r.protocol || 'Not specified')}</span></td>
+    <td><span class="purpose">${escape(r.purpose || 'Not specified')}</span><details class="record-details"><summary>Service &amp; source details</summary><div class="description">${escape(r.serviceDescription || 'No service description published.')}</div><dl><dt>Record ID</dt><dd>${escape(r.id)}</dd><dt>Published</dt><dd>${escape(r.publishDate || 'Not specified')}</dd></dl><a href="https://ports.broadcom.com/" target="_blank" rel="noopener">Verify at official source ↗</a></details></td>
+    <td><span class="classification-badge">${escape(r.classification || 'Not specified')}</span></td></tr>`).join('');
+  $('list-count').textContent = `${filtered.length.toLocaleString('en')} entries`;
+  $('list-range').textContent = `Showing ${page*pageSize+1}–${Math.min((page+1)*pageSize,filtered.length)} of ${filtered.length.toLocaleString('en')}`;
   $('page').textContent = `Page ${page+1} of ${pages}`;
   $('prev').disabled = page === 0; $('next').disabled = page === pages-1;
 }
 function renderMatrix() {
-  const sources = unique(filtered.map(r=>r.source)), destinations = unique(filtered.map(r=>r.destination));
+  const [sources, destinations] = matrixAxes(filtered, $('matrix-order').value);
   sourcePage = Math.min(sourcePage, Math.max(0,Math.ceil(sources.length/sourceSize)-1));
   destPage = Math.min(destPage, Math.max(0,Math.ceil(destinations.length/destSize)-1));
   const ss = sources.slice(sourcePage*sourceSize,(sourcePage+1)*sourceSize);
   const ds = destinations.slice(destPage*destSize,(destPage+1)*destSize);
   const counts = matrixCounts(filtered);
-  $('matrix').innerHTML = `<table class="matrix-table"><caption>Published connections: source → destination</caption><thead><tr><th scope="col">Source ↓ / Destination →</th>${ds.map(d=>`<th scope="col">${escape(d)}</th>`).join('')}</tr></thead><tbody>${ss.map((s,si)=>`<tr><th scope="row">${escape(s)}</th>${ds.map((d,di)=>{const count=counts.get(s)?.get(d)||0;return `<td>${count ? `<button class="matrix-cell" data-si="${si}" data-di="${di}" aria-label="${escape(`${s} to ${d}: ${count} entries. View connections`)}">${count}</button>`:'—'}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
+  $('matrix-count').textContent = `${sources.length} sources · ${destinations.length} destinations`;
+  $('matrix').innerHTML = `<table class="matrix-table"><caption class="visually-hidden">Published connections: source → destination</caption><thead><tr><th scope="col">Source ↓ / Destination →</th>${ds.map(d=>`<th scope="col">${escape(d)}</th>`).join('')}</tr></thead><tbody>${ss.map((s,si)=>`<tr><th scope="row">${escape(s)}</th>${ds.map((d,di)=>{const count=counts.get(s)?.get(d)||0;return `<td>${count ? `<button class="matrix-cell ${count>=10?'density-many':count>1?'density-few':'density-one'}" data-si="${si}" data-di="${di}" aria-label="${escape(`${s} to ${d}: ${count} entries. View connections`)}">${count}</button>`:'—'}</td>`;}).join('')}</tr>`).join('')}</tbody></table>`;
   $('matrix').querySelectorAll('button').forEach(button => button.addEventListener('click', () => {
     $('source').value = ss[Number(button.dataset.si)]; $('destination').value = ds[Number(button.dataset.di)];
     view = 'list'; page = 0; render(); $('list-tab').focus();
@@ -147,7 +153,7 @@ function renderTopology(baseRows) {
       ? `${componentById.get(selectedComponents[0]).name} selected — ${connected.size-1} direct component paths are drawn. Select a connected box or path to isolate it.`
       : `${componentById.get(selectedComponents[0]).name} ↔ ${componentById.get(selectedComponents[1]).name} — ${filtered.length} direct source entries. Ports are labelled on the path and listed below by direction.`;
   if (!selectedComponents.length) {
-    $('path-ports').innerHTML='<strong>Ports on the selected communication path</strong><p>Select a component box, then select a connected box or line. The exact source records remain available in the connection list.</p>';
+    $('path-ports').innerHTML='<div class="data-heading"><div><h2>Selected path ports</h2><p>Select a component or path above to explore its ports by direction.</p></div></div>';
     return;
   }
   const directional = new Map();
@@ -158,9 +164,23 @@ function renderTopology(baseRows) {
   }
   const groups=[...directional.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows])=>{
     const [source,destination]=key.split('|');
-    return `<div class="direction-group"><span>${escape(componentById.get(source).name)} → ${escape(componentById.get(destination).name)} · ${rows.length} entries</span>${uniquePorts(rows).map(port=>`<span class="port-chip">${escape(port)}</span>`).join('')}</div>`;
+    const ports=uniquePorts(rows);
+    const protocols=unique(rows.map(row=>row.protocol || 'Not specified'));
+    return `<details class="direction-group" ${selectedComponents.length===2?'open':''}><summary>
+      <span class="direction-route"><span>${escape(componentById.get(source).name)}</span><span class="direction-arrow" aria-label="to">→</span><span>${escape(componentById.get(destination).name)}</span></span>
+      <span class="direction-counts">${ports.length} port / protocol ${ports.length===1?'label':'labels'} · ${rows.length} ${rows.length===1?'entry':'entries'}</span>
+      <span class="direction-preview">${escape(ports.slice(0,4).join(' · '))}${ports.length>4?` · +${ports.length-4} more`:''}</span>
+      </summary><div class="protocol-groups">${protocols.map(protocol=>`<div class="protocol-row"><span class="protocol-badge">${escape(protocol)}</span><div>${unique(rows.filter(row=>(row.protocol || 'Not specified')===protocol).map(row=>row.port || 'Not specified')).map(port=>`<span class="port-chip">${escape(port)}</span>`).join('')}</div></div>`).join('')}</div></details>`;
   }).join('');
-  $('path-ports').innerHTML=`<strong>Ports on the selected communication ${selectedComponents.length===2?'path':'paths'} (${uniquePorts(filtered).length} unique port / protocol labels)</strong>${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}`;
+  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div><p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
+  const toggle=$('toggle-paths');
+  if(toggle) {
+    const details=[...$('path-ports').querySelectorAll('details')];
+    const updateLabel=()=>{toggle.textContent=details.every(detail=>detail.open)?'Collapse all':'Expand all';};
+    details.forEach(detail=>detail.addEventListener('toggle',updateLabel));
+    toggle.addEventListener('click',()=>{const open=!details.every(detail=>detail.open);details.forEach(detail=>detail.open=open);updateLabel();});
+    updateLabel();
+  }
 }
 async function init() {
   try {
@@ -186,6 +206,8 @@ async function init() {
     $('clear-components').addEventListener('click',()=>{selectedComponents=[];page=sourcePage=destPage=0;render();});
     $('show-connections').addEventListener('click',()=>{view='list';page=0;render();$('list-tab').focus();});
     for (const v of ['diagram','list','matrix']) $(`${v}-tab`).addEventListener('click',()=>{view=v;render();});
+    $('matrix-order').addEventListener('change',()=>{sourcePage=destPage=0;renderMatrix();});
+    for (const id of ['list-sort','list-order','list-size']) $(id).addEventListener('change',()=>{page=0;renderList();});
     $('prev').addEventListener('click',()=>{page--;render();}); $('next').addEventListener('click',()=>{page++;render();});
     for(const [id,change] of [['source-prev',()=>sourcePage--],['source-next',()=>sourcePage++],['dest-prev',()=>destPage--],['dest-next',()=>destPage++]]) $(id).addEventListener('click',()=>{change();renderMatrix();});
     $('export').addEventListener('click',()=>{

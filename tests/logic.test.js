@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { filterRows, csvCell, toCSV, matrixCounts } from '../logic.js';
+import { filterRows, csvCell, toCSV, matrixCounts, matrixAxes, sortRows } from '../logic.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('snapshot has explicit mapped release membership and accurate coverage', () => {
@@ -32,6 +32,19 @@ test('matrix counts every entry once without synthesizing reverse connections', 
   assert.equal([...counts.values()].reduce((total,m)=>total+[...m.values()].reduce((a,b)=>a+b,0),0),data.rows.length);
   const simple=matrixCounts([{source:'A',destination:'B',classification:'Both'},{source:'A',destination:'B'}]);
   assert.equal(simple.get('A').get('B'),2); assert.equal(simple.has('B'),false);
+});
+test('matrix axes rank actual directional records and retain exact labels', () => {
+  const rows=[{source:'Z source',destination:'X target'},{source:'Z source',destination:'X target'},{source:'A source',destination:'B target'}];
+  assert.deepEqual(matrixAxes(rows), [['Z source','A source'],['X target','B target']]);
+  assert.deepEqual(matrixAxes(rows,'alphabetical'), [['A source','Z source'],['B target','X target']]);
+  assert.deepEqual(matrixAxes([]), [[],[]]);
+});
+test('presentation sorting is numeric, stable, and never mutates source rows', () => {
+  const rows = [{port:'443', id:1}, {port:'80', id:2}, {port:'443', id:3}, {port:'8080', id:4}];
+  assert.deepEqual(sortRows(rows, 'port').map(r=>r.id), [2,1,3,4]);
+  assert.deepEqual(sortRows(rows, 'port', 'desc').map(r=>r.id), [4,1,3,2]);
+  assert.deepEqual(sortRows(rows, 'unknown'), rows);
+  assert.deepEqual(rows.map(r=>r.id), [1,2,3,4]);
 });
 test('CSV quotes values, retains multiline descriptions, and mitigates formulas', () => {
   assert.equal(csvCell('a,"b"\nc'),'"a,""b""\nc"');
