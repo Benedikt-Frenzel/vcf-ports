@@ -33,6 +33,41 @@ export function matrixAxes(rows, order = 'activity') {
       (order === 'activity' ? totals.get(b) - totals.get(a) : 0) || a.localeCompare(b, 'en', {numeric:true}));
   });
 }
+// Internet domains: extracted from endpoint labels and service descriptions.
+// The pattern requires a dotted FQDN with a known generic TLD, so version
+// numbers ("9.1") and article references ("KB 327186") never match.
+const FQDN_PATTERN = /(?<![\w-])(\*\.)?((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|io|net|org|dev|ai|cloud|app|gov|edu))(?![\w-])/gi;
+const TLDS = new Set(['com','io','net','org','dev','ai','cloud','app','gov','edu']);
+export function domainOwner(domain) {
+  if (/(^|\.)broadcom\.com$/i.test(domain)) return 'broadcom';
+  if (/(^|\.)vmware\.com$/i.test(domain)) return 'vmware';
+  return 'other';
+}
+export function domainsInText(text) {
+  const found = new Set();
+  for (const match of String(text ?? '').matchAll(FQDN_PATTERN)) found.add(((match[1] || '') + match[2]).toLowerCase());
+  return found;
+}
+export function externalDomains(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const inLabels = new Set([...domainsInText(row.source), ...domainsInText(row.destination)]);
+    const inDescriptions = domainsInText(row.serviceDescription);
+    if (!inLabels.size && !inDescriptions.size) continue;
+    for (const domain of new Set([...inLabels, ...inDescriptions])) {
+      const entry = map.get(domain) || {domain, owner: domainOwner(domain), label: false, description: false, records: new Set(), ports: new Set(), products: new Set()};
+      if (inLabels.has(domain)) entry.label = true;
+      if (inDescriptions.has(domain)) entry.description = true;
+      entry.records.add(row.id);
+      entry.ports.add(`${row.port || 'Not specified'} / ${row.protocol || 'Not specified'}`);
+      entry.products.add(row.product);
+      map.set(domain, entry);
+    }
+  }
+  return [...map.values()]
+    .map(entry => ({...entry, records: entry.records.size, ports: [...entry.ports].sort((a,b)=>a.localeCompare(b,'en',{numeric:true})), products: [...entry.products].sort()}))
+    .sort((a,b) => a.domain.localeCompare(b.domain));
+}
 export function matrixCounts(rows) {
   const counts = new Map();
   for (const row of rows) {

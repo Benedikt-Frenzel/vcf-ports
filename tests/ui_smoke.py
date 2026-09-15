@@ -46,6 +46,8 @@ try:
         assert page.locator('.record-details[open]').count()==1
         page.locator('#list-view').scroll_into_view_if_needed()
         page.screenshot(path=str(shots/'list.png'))
+        page.locator('#external-domains').scroll_into_view_if_needed()
+        page.screenshot(path=str(shots/'domains.png'))
         page.locator('#next').click()
         assert 'Page 2' in page.locator('#page').inner_text()
         page.locator('#list-order').select_option('desc')
@@ -69,6 +71,17 @@ try:
         page.locator('#reset').click()
         page.locator('#search').fill('nonexistent-xyz-port')
         assert page.locator('#empty').is_visible()
+        page.locator('#reset').click()
+        # External internet destinations: filter-aware groups + vendored KB reference.
+        groups=page.locator('.domain-group>h3').all_inner_texts()
+        assert any('Broadcom domains' in g for g in groups) and any('Third-party' in g for g in groups), groups
+        assert page.locator('.domain-row').count()>0
+        assert page.locator('.kb-table tbody tr').count()>=8
+        assert page.locator('.domain-badge.broadcom').count()>0
+        page.locator('#external-domains').scroll_into_view_if_needed()
+        page.screenshot(path=str(shots/'domains.png'))
+        page.locator('#product').select_option(label='VMware vDefend')
+        assert page.locator('.domain-row').count()<25
         page.locator('#reset').click()
         page.set_viewport_size({'width':390,'height':844})
         for view in ['list','matrix','diagram']:

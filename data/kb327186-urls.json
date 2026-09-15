@@ -1,0 +1,103 @@
+{
+  "kind": "broadcom-kb-public-urls",
+  "articleId": "327186",
+  "title": "Public URL list for VCF Products",
+  "source": "https://knowledge.broadcom.com/external/article/327186",
+  "retrievedAt": "2026-09-15T13:35:34Z",
+  "appliesTo": "For VCF and vSphere Foundation 9.1",
+  "note": "Vendored reference for the public URLs required for online functionality. The article is the authoritative list and can change; refresh it with scripts/update_kb_urls.py or manually.",
+  "entries": [
+    {
+      "domains": [
+        "dl.broadcom.com"
+      ],
+      "name": "VMware Depot",
+      "purpose": "Download SDDC bundles",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "SDDC Manager vCenter Server VCF Operations Fleet Management VCF Installer VCF Download Tool Async Patch Tool",
+      "versions": "All"
+    },
+    {
+      "domains": [
+        "vcsa.vmware.com"
+      ],
+      "name": "VCF Telemetry (CEIP)",
+      "purpose": "Telemetry data",
+      "port": "443",
+      "direction": "Outbound",
+      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "versions": "All"
+    },
+    {
+      "domains": [
+        "wp-content.vmware.com",
+        "wp-content.broadcom.com"
+      ],
+      "name": "TKR,VKR Images",
+      "purpose": "vSphere Kubernetes Clusters",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "vCentervSphere Kubernetes",
+      "versions": "All"
+    },
+    {
+      "domains": [
+        "vvs.broadcom.com"
+      ],
+      "name": "VVS Data",
+      "purpose": "VVS compatibility data",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "SDDC Manager VCF Installer VCF Download Tool Async Patch Tool",
+      "versions": "All"
+    },
+    {
+      "domains": [
+        "vsanhealth.vmware.com",
+        "eapi.broadcom.com"
+      ],
+      "name": "vSAN HCL Data",
+      "purpose": "vSAN Hardware Compatibility List",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "SDDC Manager vCenter Server VCF Installer VCF Download Tool Async Patch Tool",
+      "versions": "All"
+    },
+    {
+      "domains": [
+        "emc.com",
+        "dl.dell.com"
+      ],
+      "name": "VxRail Depot",
+      "purpose": "Download VxRail bundles",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "versions": "9.0.x, 5.x, 4.5.x"
+    },
+    {
+      "domains": [
+        "vcf.broadcom.com",
+        "eapi.broadcom.com"
+      ],
+      "name": "VCF Licensing",
+      "purpose": "License usage submission and license downloads(connected only)",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "VCF Operations",
+      "versions": "9.0.x"
+    },
+    {
+      "domains": [
+        "auth.esp.vmware.com"
+      ],
+      "name": "UMDS",
+      "purpose": "Update Manager Download Service",
+      "port": "443",
+      "direction": "Bidirectional",
+      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "versions": "5.x, 9.0.x"
+    }
+  ]
+}

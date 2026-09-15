@@ -1,4 +1,5 @@
 // Logical presentation aliases for the topology. Source endpoint text is never changed.
+import { domainsInText } from './logic.js';
 export const COMPONENTS = [
   {id:'automation', name:'VCF Automation', zone:'Fleet services', x:70, y:64, w:260},
   {id:'operations', name:'VCF Operations', zone:'Fleet services', x:405, y:64, w:260},
@@ -48,6 +49,10 @@ const rules = [
 ];
 export function componentForEndpoint(endpoint) {
   const text = String(endpoint || '');
+  // Explicit internet domains (broadcom.com, vmware.com, lastline.com, …) are
+  // always external destinations, even when the host label contains product
+  // prefixes like "nsx." or "vcsa.".
+  if (domainsInText(text).size) return 'infrastructure';
   for (const [id, pattern] of rules) if (pattern.test(text)) return id;
   return 'infrastructure';
 }

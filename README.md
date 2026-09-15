@@ -42,6 +42,7 @@ Pull requests run validation without deployment. All asset paths are relative, s
 - Sortable connection list with separate endpoint columns, 20/40/80 rows per page, and expandable original service descriptions and source metadata.
 - Source × destination matrix with independently paginated axes, count shading, and activity/alphabetical ordering; select a populated cell to inspect its connections.
 - Filtered CSV export with quoting, UTF-8 BOM, and spreadsheet formula mitigation.
+- External internet destinations: internet domains named by the filtered records, grouped as Broadcom, VMware, and third-party, with connecting products, ports, and record counts; endpoint labels that are explicit domains carry a badge in the connection list. A vendored reference table of the public depot/telemetry/licensing URLs from Broadcom KB 327186 is included and linked.
 - Shareable URL query parameters for filters and selected view.
 - Visible source timestamp, product/release coverage, snapshot download, and independence disclaimer.
 - Keyboard-operable controls, labelled tables and inputs, live result counts, responsive layout, error and empty states.
@@ -68,6 +69,8 @@ Matrix counts represent **source records**, not unique ports or firewall rules. 
 
 The refresh command runs only on explicit request, not on page load or deployment. It writes the snapshot atomically after successful retrieval. Review mapping, coverage, and row changes before committing a refresh. Public API schemas may change.
 
+The external-domains view derives its domain list only from text published in the snapshot (endpoint labels and service descriptions) and from the public, attributed KB 327186 article. Domains are never guessed or expanded beyond what the sources state, and the KB remains the authoritative list for depot and support URLs.
+
 **Do not apply this dataset directly as a firewall policy.** Validate against the official tool, current product documentation, deployment topology, and enabled features. The project provides no guarantee of completeness or accuracy.
 
 ## Structure
@@ -76,8 +79,9 @@ The refresh command runs only on explicit request, not on page load or deploymen
 - `logic.js`: independently tested filtering, matrix aggregation, and CSV helpers.
 - `topology.js`: tested logical component aliases, path selection, link aggregation, and highlighted port sets.
 - `data/vcf-9.1.json`: source snapshot and coverage metadata.
+- `data/kb327186-urls.json`: vendored public URL reference from Broadcom KB 327186 (`mise run refresh-kb-urls`).
 - `vendor/`: locally hosted CDS design tokens, Clarity CSS, and upstream licenses.
-- `scripts/`: snapshot refresh and static build.
+- `scripts/`: snapshot refresh, KB reference refresh, and static build.
 - `tests/`: dependency-free Node tests and an optional Camoufox UI smoke test.
 - `mise.toml`: development tools and tasks.
 

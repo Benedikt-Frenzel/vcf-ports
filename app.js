@@ -1,4 +1,4 @@
-import { filterRows, toCSV, matrixCounts, matrixAxes, sortRows } from './logic.js';
+import { filterRows, toCSV, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
 import { COMPONENTS, filterByComponents, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -38,7 +38,30 @@ function render() {
   if (view === 'list') renderList();
   else if (view === 'matrix') renderMatrix();
   else renderTopology(baseRows);
+  renderExternalDomains();
   saveState();
+}
+function renderExternalDomains() {
+  const list = externalDomains(filtered);
+  const groups = {broadcom: [], vmware: [], other: []};
+  for (const item of list) groups[item.owner].push(item);
+  const section = (title, items) => items.length ? `<div class="domain-group"><h3>${title} <span class="count-badge">${items.length} ${items.length===1?'domain':'domains'}</span></h3>
+    ${items.map(item => `<div class="domain-row">
+      <span class="domain-name">${escape(item.domain)}</span>
+      <span class="domain-origin">${item.label ? 'endpoint label' : ''}${item.label && item.description ? ' + ' : ''}${item.description ? 'service description' : ''}</span>
+      <span class="domain-products">${escape(item.products.join(', '))}</span>
+      <span class="domain-ports">${item.ports.map(port => `<span class="port-chip">${escape(port)}</span>`).join('')}</span>
+      <span class="domain-records">${item.records} ${item.records===1?'record':'records'}</span>
+    </div>`).join('')}</div>` : '';
+  $('domains-list').innerHTML = list.length
+    ? section('Broadcom domains', groups.broadcom) + section('VMware domains', groups.vmware) + section('Third-party domains', groups.other)
+    : '<p class="domains-empty">No internet domains are named by the current filters. Depot and support URLs live in the KB reference below.</p>';
+}
+const OWNER_LABEL = {broadcom:'Broadcom', vmware:'VMware', other:'Internet'};
+function endpointCell(value) {
+  const [domain] = domainsInText(value);
+  const badge = domain ? ` <span class="domain-badge ${domainOwner(domain)}" title="Internet destination">${OWNER_LABEL[domainOwner(domain)]}</span>` : '';
+  return `${escape(value)}${badge}`;
 }
 function renderList() {
   const pageSize = Number($('list-size').value);
@@ -47,8 +70,8 @@ function renderList() {
   page = Math.min(page, pages - 1);
   $('rows').innerHTML = sorted.slice(page*pageSize,(page+1)*pageSize).map(r => `<tr>
     <td><strong>${escape(r.product)}</strong><span class="sub">${r.releases.map(v => escape(v.name)).join(' · ')}</span></td>
-    <td class="endpoint-name">${escape(r.source)}</td>
-    <td class="endpoint-name">${escape(r.destination)}</td>
+    <td class="endpoint-name">${endpointCell(r.source)}</td>
+    <td class="endpoint-name">${endpointCell(r.destination)}</td>
     <td><span class="port">${escape(r.port || 'Not specified')}</span><span class="protocol-badge">${escape(r.protocol || 'Not specified')}</span></td>
     <td><span class="purpose">${escape(r.purpose || 'Not specified')}</span><details class="record-details"><summary>Service &amp; source details</summary><div class="description">${escape(r.serviceDescription || 'No service description published.')}</div><dl><dt>Record ID</dt><dd>${escape(r.id)}</dd><dt>Published</dt><dd>${escape(r.publishDate || 'Not specified')}</dd></dl><a href="https://ports.broadcom.com/" target="_blank" rel="noopener">Verify at official source ↗</a></details></td>
     <td><span class="classification-badge">${escape(r.classification || 'Not specified')}</span></td></tr>`).join('');
@@ -176,7 +199,13 @@ function renderTopology(baseRows) {
       <span class="direction-preview">${escape(ports.slice(0,4).join(' · '))}${ports.length>4?` · +${ports.length-4} more`:''}</span>
       </summary><div class="protocol-groups">${protocols.map(protocol=>`<div class="protocol-row"><span class="protocol-badge">${escape(protocol)}</span><div>${unique(rows.filter(row=>(row.protocol || 'Not specified')===protocol).map(row=>row.port || 'Not specified')).map(port=>`<span class="port-chip">${escape(port)}</span>`).join('')}</div></div>`).join('')}</div></details>`;
   }).join('');
-  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div><p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
+  const externalRows = filtered.filter(row => topologyPath(row).includes('infrastructure'));
+  const externalNote = externalRows.length ? (() => {
+    const counts = {broadcom:0, vmware:0, other:0};
+    for (const item of externalDomains(externalRows)) counts[item.owner]++;
+    return `<p class="path-note"><strong>Internet destinations on these paths:</strong> ${counts.broadcom} Broadcom, ${counts.vmware} VMware, ${counts.other} third-party domains. <a href="#external-domains">See the full domain list and KB reference</a>.</p>`;
+  })() : '';
+  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div>${externalNote}<p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
   const toggle=$('toggle-paths');
   if(toggle) {
     const details=[...$('path-ports').querySelectorAll('details')];
@@ -219,6 +248,20 @@ async function init() {
       const a=document.createElement('a');a.href=url;a.download='vcf-9.1-filtered-connections.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
     $('status').hidden=true; $('explorer').hidden=false; render();
+    try {
+      const kb = await (await fetch('./data/kb327186-urls.json')).json();
+      $('kb-link').href = kb.source;
+      $('kb-retrieved').textContent = `Retrieved ${new Date(kb.retrievedAt).toLocaleDateString('en-GB', {timeZone:'UTC'})} UTC · ${kb.title} · ${kb.appliesTo}`;
+      $('kb-urls').innerHTML = `<table class="kb-table"><caption class="visually-hidden">Public URLs required for online functionality, from Broadcom KB ${kb.articleId}</caption><thead><tr><th scope="col">Domains</th><th scope="col">Purpose</th><th scope="col">Port</th><th scope="col">Direction</th><th scope="col">Versions</th><th scope="col">Source products</th></tr></thead><tbody>${kb.entries.map(entry => `<tr>
+        <td>${entry.domains.map(domain => `<span class="domain-name">${escape(domain)} <span class="domain-badge ${domainOwner(domain)}">${OWNER_LABEL[domainOwner(domain)]}</span></span>`).join('<br>')}</td>
+        <td><strong>${escape(entry.name)}</strong><span class="sub">${escape(entry.purpose)}</span></td>
+        <td><span class="port-chip">${escape(entry.port)} / TCP</span></td>
+        <td>${escape(entry.direction)}</td>
+        <td>${escape(entry.versions)}</td>
+        <td>${escape(entry.sourceProducts)}</td></tr>`).join('')}</tbody></table>`;
+    } catch {
+      $('kb-urls').innerHTML = '<p class="domains-empty">The KB reference table is unavailable. Visit Broadcom KB 327186 for the authoritative list.</p>';
+    }
   } catch(error) {
     $('status').textContent=`Unable to load the data snapshot (${error.message}). Reload to retry. For local use, serve this folder over HTTP instead of opening index.html directly.`;
     $('status').setAttribute('role','alert');

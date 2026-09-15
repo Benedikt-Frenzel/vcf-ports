@@ -114,6 +114,17 @@
 
     <p id="empty" class="empty" hidden>No matching connections. Try a broader search or reset the filters.</p>
 
+    <section id="external-domains" class="card domains-card" aria-label="External internet destinations">
+      <div class="card-header">
+        <div><h2 class="card-title">External internet destinations</h2><p class="card-subtitle">Internet domains named by the filtered records — derived from endpoint labels and service descriptions, never inferred. Endpoint labels marked in the connection list carry a domain badge.</p></div>
+      </div>
+      <div class="card-block"><div id="domains-list"></div></div>
+      <div class="kb-urls">
+        <div class="data-heading"><div><h2>Public URL reference <span class="count-badge">Broadcom KB 327186</span></h2><p id="kb-retrieved" class="domains-empty">Depot, telemetry, compatibility, and licensing URLs required for online functionality.</p></div><a id="kb-link" class="btn btn-sm btn-link" href="https://knowledge.broadcom.com/external/article/327186" target="_blank" rel="noopener">Open KB 327186 ↗</a></div>
+        <div id="kb-urls" class="table-scroll" tabindex="0" aria-label="Scrollable public URL reference"></div>
+      </div>
+    </section>
+
     <section id="coverage" class="card coverage">
       <div class="card-header"><h2 class="card-title">Source &amp; version coverage</h2></div>
       <div class="card-block">
