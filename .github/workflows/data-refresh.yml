@@ -1,0 +1,55 @@
+name: Weekly data refresh
+on:
+  schedule:
+    # Mondays at 06:00 UTC — outside the typical work day for most regions.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: jdx/mise-action@v4
+
+      - name: Refresh the VCF 9.1 ports snapshot
+        run: mise run refresh-data
+
+      - name: Refresh the Broadcom KB 327186 reference
+        # Secondary source — don't block the ports snapshot if the KB page is unreachable.
+        continue-on-error: true
+        run: mise run refresh-kb-urls
+
+      - name: Rebuild and verify the snapshot
+        run: mise run build
+
+      - name: Open a pull request with the refreshed data
+        uses: peter-evans/create-pull-request-action@v7
+        with:
+          branch: data/weekly-refresh
+          branch-suffix: timestamp
+          commit-message: 'data: weekly snapshot refresh'
+          title: 'Weekly VCF 9.1 snapshot refresh'
+          body: |
+            Automated weekly refresh of the bundled VCF 9.1 snapshot and
+            the Broadcom KB 327186 reference.
+
+            - Ports snapshot re-pulled from the public Broadcom Ports API and
+              normalised by `scripts/data_normalize.py`.
+            - KB 327186 public URL reference re-pulled when reachable.
+
+            The same tests and build run as on a normal PR, so a failing
+            run blocks this PR from being mergeable. Review the data diff
+            and merge when you are happy.
+          add-paths: |
+            data/vcf-9.1.json
+            data/kb327186-urls.json
+          delete-branch: true
+          token: ${{ secrets.GITHUB_TOKEN }}

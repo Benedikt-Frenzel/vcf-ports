@@ -37,6 +37,8 @@ mise run normalize-snapshot  # Apply the data normaliser without re-fetching
 
 Pull requests run validation without deployment. All asset paths are relative, so both `https://user.github.io/repository/` and a custom domain work. Hosting is not provisioned until the repository is pushed and Pages is enabled.
 
+A separate `.github/workflows/data-refresh.yml` runs every Monday at 06:00 UTC: it refreshes `data/vcf-9.1.json` from the Broadcom Ports API and `data/kb327186-urls.json` from the public KB article, then opens a pull request with the refreshed data (and re-runs the same tests and build as a regular PR). The PR is yours to review and merge — auto-merging is intentionally disabled so you always see what changed. `workflow_dispatch` lets you trigger the same flow on demand.
+
 ## Features
 
 - Search across ports, endpoints, service descriptions, products, and releases; multiple search words use AND semantics.
