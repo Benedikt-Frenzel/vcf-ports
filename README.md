@@ -82,7 +82,7 @@ The refresh command runs only on explicit request, not on page load or deploymen
 
 ## Third-party notices
 
-Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui.min.css` together with its required CDS design tokens from `https://unpkg.com/@cds/core@6.9.2/global.min.css`. Their MIT licenses are included in `vendor/CLARITY-LICENSE` and `vendor/CDS-LICENSE`. Port data is attributed to Broadcom's public Ports and Protocols tool; no ownership or independent license over that source data is claimed. Review applicable upstream terms before redistributing it. No Broadcom branding or logo is used as this project's identity.
+Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui.min.css` together with its required CDS design tokens from `https://unpkg.com/@cds/core@6.9.2/global.min.css`. Their MIT licenses are included in `vendor/CLARITY-LICENSE` and `vendor/CDS-LICENSE`. The Metropolis typeface (Clarity's brand font) is self-hosted from `@fontsource/metropolis@5.3.0`; its public-domain (Unlicense) notice is in `vendor/fonts/LICENSE`. Port data is attributed to Broadcom's public Ports and Protocols tool; no ownership or independent license over that source data is claimed. Review applicable upstream terms before redistributing it. No Broadcom branding or logo is used as this project's identity.
 
 ## Verification
 
