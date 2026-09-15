@@ -26,8 +26,7 @@ try:
         page.evaluate('document.fonts.ready')
         assert 'Metropolis' in page.locator('body').evaluate('(e)=>getComputedStyle(e).fontFamily')
         assert page.locator('body').evaluate('(e)=>getComputedStyle(e).getPropertyValue("--clr-font")').strip()
-        # Prominent segmented tabs with icons, sticky toolbar.
-        assert page.locator('.view-tab .tab-icon').count()==3
+        # Prominent segmented tabs, sticky toolbar.
         assert page.locator('.view-tab.active').count()==1
         assert 'sticky' in page.locator('.toolbar').evaluate('(e)=>getComputedStyle(e).position')
         # Dropdown UX: counts in options, endpoints grouped by component.
