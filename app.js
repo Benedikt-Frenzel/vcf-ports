@@ -311,7 +311,7 @@ async function init() {
       const url=URL.createObjectURL(new Blob([toCSV(filtered)],{type:'text/csv;charset=utf-8'}));
       const a=document.createElement('a');a.href=url;a.download='vcf-9.1-filtered-connections.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
-    $('status').hidden=true; $('explorer').hidden=false; render();
+    $('status').hidden=true; $('explorer').hidden=false; $('view-tabs').hidden=false; render();
     try {
       const kb = await (await fetch('./data/kb327186-urls.json')).json();
       $('kb-link').href = kb.source;

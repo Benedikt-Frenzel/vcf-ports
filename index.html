@@ -17,7 +17,13 @@
       <span class="brand-text"><span class="title">VCF Ports</span><span class="title-sub">Communication explorer · VCF 9.1</span></span>
     </a>
   </div>
+  <nav class="view-tabs header-tabs" id="view-tabs" role="tablist" aria-label="View" hidden>
+    <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
+    <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
+    <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
+  </nav>
   <div class="header-actions">
+    <a class="header-feedback" href="mailto:benedikt.frenzel@broadcom.com?subject=%5BVCF-Ports%5D%3A%20%3Cyour%20text%20here%3E">Feedback ✉</a>
     <a class="btn btn-inverse btn-sm" href="https://ports.broadcom.com/" target="_blank" rel="noopener">Official source ↗</a>
   </div>
 </header>
@@ -66,11 +72,6 @@
     </section>
 
     <div class="toolbar">
-      <nav class="view-tabs" role="tablist" aria-label="View">
-        <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
-        <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
-        <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
-      </nav>
       <span id="results" class="results" role="status"></span>
       <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
     </div>
