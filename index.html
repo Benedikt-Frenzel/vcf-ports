@@ -71,9 +71,30 @@
       </div>
     </section>
 
+    <section class="card env-card" aria-label="Environment mapping">
+      <details class="env-details">
+        <summary>Environment mapping <span class="count-badge">optional · stays in your browser</span></summary>
+        <div class="card-block">
+          <p class="env-note">Map your deployment addresses once, then export a firewall request template with concrete source and destination objects. Paste a VCF 9.x installer JSON (for example the <a href="https://github.com/lamw/vcf-91-in-box" target="_blank" rel="noopener">vcf-91-in-box</a> config) to prefill hostnames, IP pools, and subnets — passwords in the pasted JSON are never read or stored — or fill components manually. Values stay in this browser only (localStorage); nothing is uploaded.</p>
+          <div class="env-import">
+            <textarea id="env-json" rows="4" spellcheck="false" placeholder='{ "vcfInstanceName": "…", "hostSpecs": [ { "hostname": "esx01.lab" } ], "vcenterSpec": { … } }'></textarea>
+            <div class="env-actions">
+              <button id="env-import" class="btn btn-sm btn-outline" type="button">Import installer JSON</button>
+              <button id="env-clear" class="btn btn-sm btn-link" type="button">Clear mapping</button>
+              <span id="env-status" class="env-status" role="status"></span>
+            </div>
+          </div>
+          <div id="env-grid" class="env-grid"></div>
+          <p class="env-note">Unmapped components appear as <code>&lt;Component&gt; IPs / FQDNs</code> placeholders in the exported template.</p>
+        </div>
+      </details>
+    </section>
+
     <div class="toolbar">
       <span id="results" class="results" role="status"></span>
       <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
+      <button id="export-firewall" class="btn btn-sm btn-outline" type="button" title="Firewall request template with your mapped addresses">Firewall CSV ↓</button>
+      <button id="export-firewall-md" class="btn btn-sm btn-outline" type="button" title="Markdown firewall request for tickets and docs">Firewall MD ↓</button>
     </div>
 
     <section id="diagram-view" aria-label="Logical component path diagram">

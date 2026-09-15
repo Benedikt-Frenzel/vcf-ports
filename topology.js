@@ -95,3 +95,21 @@ export function uniquePorts(rows) {
   return [...new Set(rows.map(row => `${row.port || 'Not specified'} / ${row.protocol || 'Not specified'}`))]
     .sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
 }
+// Aggregate filtered rows into firewall request rules: one row per component
+// direction, port, and protocol, with unique purposes and classifications.
+export function firewallRules(rows) {
+  const groups = new Map();
+  for (const row of rows) {
+    const [source, destination] = topologyPath(row);
+    if (source === destination) continue;
+    const key = `${source}|${destination}|${row.port || 'Not specified'}|${row.protocol || 'Not specified'}`;
+    const rule = groups.get(key) || {source, destination, port: row.port || 'Not specified', protocol: row.protocol || 'Not specified', records: 0, purposes: new Set(), classifications: new Set()};
+    rule.records++;
+    if (row.purpose && row.purpose !== '-') rule.purposes.add(row.purpose);
+    if (row.classification) rule.classifications.add(row.classification);
+    groups.set(key, rule);
+  }
+  return [...groups.values()].sort((a,b) =>
+    a.source.localeCompare(b.source, 'en') || a.destination.localeCompare(b.destination, 'en') ||
+    a.port.localeCompare(b.port, 'en', {numeric:true}));
+}

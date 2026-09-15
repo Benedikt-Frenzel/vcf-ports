@@ -1,10 +1,14 @@
-import { filterRows, toCSV, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
-import { COMPONENTS, componentForEndpoint, filterByComponents, topologyLinks, topologyPath, uniquePorts } from './topology.js';
+import { filterRows, toCSV, toFirewallCSV, toFirewallMarkdown, parseInstallerConfig, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
+import { COMPONENTS, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
 const fields = ['search','product','release','protocol','classification','source','destination'];
 let data, filtered = [], page = 0, sourcePage = 0, destPage = 0, view = 'diagram', selectedComponents = [];
+const MAPPING_KEY = 'vcf-ports.environment-mapping';
+const componentNames = Object.fromEntries(COMPONENTS.map(component => [component.id, component.name]));
+let environmentMapping = {};
+try { environmentMapping = JSON.parse(localStorage.getItem(MAPPING_KEY) || '{}'); } catch { environmentMapping = {}; }
 const componentById = new Map(COMPONENTS.map(component => [component.id, component]));
 const sourceSize = 15, destSize = 8;
 // Dropdown UX: every facet option carries its snapshot record count and,
@@ -69,6 +73,31 @@ function renderFilterChips() {
   $('filter-chips').innerHTML = chips.join('');
   $('filter-chips').hidden = !chips.length;
 }
+// ---------- Environment mapping / firewall templates ----------
+function persistMapping() {
+  localStorage.setItem(MAPPING_KEY, JSON.stringify(environmentMapping));
+}
+function renderEnvironmentMapping() {
+  const grid = $('env-grid');
+  grid.innerHTML = COMPONENTS.map(component => `
+    <label class="env-field"><span class="env-name">${escape(component.name)}</span>
+      <input type="text" data-component="${component.id}" value="${escape(environmentMapping[component.id] || '')}" placeholder="IPs, CIDRs, FQDNs" spellcheck="false"></label>`).join('');
+  const mapped = Object.values(environmentMapping).filter(Boolean).length;
+  $('env-status').textContent = mapped ? `${mapped} of ${COMPONENTS.length} components mapped` : '';
+  grid.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+    const value = input.value.trim();
+    if (value) environmentMapping[input.dataset.component] = value;
+    else delete environmentMapping[input.dataset.component];
+    persistMapping();
+    $('env-status').textContent = `${Object.values(environmentMapping).filter(Boolean).length} of ${COMPONENTS.length} components mapped`;
+  }));
+}
+function downloadFile(content, filename, type) {
+  const url = URL.createObjectURL(new Blob([content], {type}));
+  const link = document.createElement('a');
+  link.href = url; link.download = filename; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 function render() {
   const baseRows = filterRows(data.rows, filters());
   filtered = filterByComponents(baseRows, selectedComponents);
@@ -76,6 +105,8 @@ function render() {
   $('results').textContent = `${filtered.length.toLocaleString('en')} of ${data.rows.length.toLocaleString('en')} entries${pathLabel}`;
   $('empty').hidden = filtered.length > 0 || view === 'diagram';
   $('export').disabled = filtered.length === 0;
+  $('export-firewall').disabled = filtered.length === 0;
+  $('export-firewall-md').disabled = filtered.length === 0;
   $('list-view').hidden = view !== 'list' || !filtered.length;
   $('matrix-view').hidden = view !== 'matrix' || !filtered.length;
   $('diagram-view').hidden = view !== 'diagram';
@@ -308,8 +339,33 @@ async function init() {
     $('prev').addEventListener('click',()=>{page--;render();}); $('next').addEventListener('click',()=>{page++;render();});
     for(const [id,change] of [['source-prev',()=>sourcePage--],['source-next',()=>sourcePage++],['dest-prev',()=>destPage--],['dest-next',()=>destPage++]]) $(id).addEventListener('click',()=>{change();renderMatrix();});
     $('export').addEventListener('click',()=>{
-      const url=URL.createObjectURL(new Blob([toCSV(filtered)],{type:'text/csv;charset=utf-8'}));
-      const a=document.createElement('a');a.href=url;a.download='vcf-9.1-filtered-connections.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      downloadFile(toCSV(filtered),'vcf-9.1-filtered-connections.csv','text/csv;charset=utf-8');
+    });
+    $('export-firewall').addEventListener('click',()=>{
+      downloadFile(toFirewallCSV(firewallRules(filtered),environmentMapping,componentNames),'vcf-9.1-firewall-request.csv','text/csv;charset=utf-8');
+    });
+    $('export-firewall-md').addEventListener('click',()=>{
+      downloadFile(toFirewallMarkdown(firewallRules(filtered),environmentMapping,componentNames,{snapshot:`ports.broadcom.com VCF ${data.vcfVersion}, retrieved ${new Date(data.retrievedAt).toISOString().slice(0,10)}`,rows:filtered.length}),'vcf-9.1-firewall-request.md','text/markdown;charset=utf-8');
+    });
+    renderEnvironmentMapping();
+    $('env-import').addEventListener('click',()=>{
+      try {
+        const imported = parseInstallerConfig($('env-json').value);
+        const components = Object.keys(imported);
+        if (!components.length) { $('env-status').textContent='No known addressing fields found in the pasted JSON.'; return; }
+        for (const id of components) {
+          const merged=[...new Set([...String(environmentMapping[id]||'').split(',').map(v=>v.trim()).filter(Boolean),...String(imported[id]).split(',').map(v=>v.trim()).filter(Boolean)])];
+          environmentMapping[id]=merged.join(', ');
+        }
+        persistMapping(); renderEnvironmentMapping();
+        $('env-json').value='';
+        $('env-status').textContent=`Imported ${components.length} components from installer JSON.`;
+      } catch (error) {
+        $('env-status').textContent=`Import failed: ${error.message}`;
+      }
+    });
+    $('env-clear').addEventListener('click',()=>{
+      environmentMapping={}; persistMapping(); renderEnvironmentMapping();
     });
     $('status').hidden=true; $('explorer').hidden=false; $('view-tabs').hidden=false; render();
     try {

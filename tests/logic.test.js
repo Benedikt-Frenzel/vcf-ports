@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { filterRows, csvCell, toCSV, matrixCounts, matrixAxes, sortRows, domainOwner, domainsInText, externalDomains } from '../logic.js';
+import { filterRows, csvCell, toCSV, matrixCounts, matrixAxes, sortRows, domainOwner, domainsInText, externalDomains, parseInstallerConfig, toFirewallCSV, toFirewallMarkdown, isBidirectional } from '../logic.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('snapshot has explicit mapped release membership and accurate coverage', () => {
@@ -56,6 +56,56 @@ test('external domains classify owners, honour wildcards, and ignore version noi
   const snapshot=externalDomains(data.rows);
   for (const domain of ['access.broadcom.com','vcsa.vmware.com','registry.k8s.io']) assert.ok(snapshot.some(d=>d.domain===domain),domain);
   assert.ok(snapshot.every(d=>d.records>=1));
+});
+test('installer config import maps addressing and never touches credentials', () => {
+  const fixture = JSON.stringify({
+    hostSpecs: [{hostname:'esx01.vcf.lab', credentials:{password:'secret-password'}}, {hostname:'esx02.vcf.lab'}],
+    networkSpecs: [
+      {networkType:'MANAGEMENT', subnet:'172.30.0.0/24'},
+      {networkType:'VMOTION', subnet:'172.30.40.0/24'},
+      {networkType:'VSAN', subnet:'172.30.50.0/24'}],
+    dnsSpec: {nameservers: ['192.168.30.29']},
+    ntpServers: ['96.19.94.82'],
+    vspClusterSpec: {platformFqdn:'vcf-msr01.vcf.lab', fleetFqdn:'vcf-flt01.vcf.lab', ipv4Pool:{ipRange:{startIpAddress:'172.30.0.33', endIpAddress:'172.30.0.46'}}},
+    fleetLcmSpec: {hostname:'vcf-flt01.vcf.lab'},
+    vcfAutomationSpec: {hostname:'auto01.vcf.lab', ipPool:['172.30.0.65','172.30.0.66']},
+    nsxtSpec: {vipFqdn:'nsx01.vcf.lab', nsxtManagers:[{hostname:'nsx01a.vcf.lab'}], ipAddressPoolSpec:{subnets:[{cidr:'172.30.60.0/24'}]}},
+    vcfOperationsSpec: {nodes:[{hostname:'vcf01.vcf.lab'}]},
+    vcfOperationsCollectorSpec: {hostname:'vcf-proxy01.vcf.lab'},
+    licenseServerSpec: {hostname:'vcf-lic01.vcf.lab'},
+    vidbSpec: {hostname:'vcf-idb01.vcf.lab'},
+    vcenterSpec: {vcenterHostname:'vc01.vcf.lab'},
+    sddcManagerSpec: {hostname:'sddcm01.vcf.lab', localUserPassword:'secret-password-2'},
+  });
+  const mapping = parseInstallerConfig(fixture);
+  assert.equal(mapping.esx, 'esx01.vcf.lab, esx02.vcf.lab, 172.30.40.0/24');
+  assert.equal(mapping.vsan, '172.30.50.0/24');
+  assert.ok(mapping.management.includes('vcf-msr01.vcf.lab'));
+  assert.ok(mapping.management.includes('172.30.0.33-172.30.0.46'));
+  assert.equal(mapping.automation, 'auto01.vcf.lab, 172.30.0.65, 172.30.0.66');
+  assert.ok(mapping.nsx.includes('172.30.60.0/24'));
+  assert.equal(mapping.licensing, 'vcf-lic01.vcf.lab');
+  assert.equal(mapping.identity, 'vcf-idb01.vcf.lab');
+  assert.equal(mapping.vcenter, 'vc01.vcf.lab');
+  assert.ok(mapping.infrastructure.includes('192.168.30.29'));
+  assert.ok(!JSON.stringify(mapping).includes('secret-password'), 'credentials must not leak');
+});
+test('firewall templates fill mapped addresses and keep placeholders for gaps', () => {
+  const rules = [
+    {source:'vcenter', destination:'esx', port:'443', protocol:'TCP', records:2, purposes:new Set(['vCenter management']), classifications:new Set(['Both'])},
+    {source:'nsx', destination:'esx', port:'902', protocol:'TCP', records:1, purposes:new Set(['host management']), classifications:new Set(['Outbound'])},
+  ];
+  const names = {vcenter:'vCenter', esx:'ESX Hosts', nsx:'NSX'};
+  const csv = toFirewallCSV(rules, {vcenter:'vc01.lab'}, names);
+  assert.ok(csv.startsWith('\uFEFF"Source address"'));
+  assert.ok(csv.includes('"vc01.lab"'));
+  assert.ok(csv.includes('<ESX Hosts IPs / FQDNs>'));
+  assert.ok(csv.includes('"yes"') && csv.includes('"no"'));
+  const md = toFirewallMarkdown(rules, {}, names, {snapshot:'test'});
+  assert.ok(md.startsWith('# VCF 9.1 firewall request'));
+  assert.ok(md.includes('| vc01.lab |') === false && md.includes('<vCenter IPs / FQDNs>'));
+  assert.equal(isBidirectional(['Both','Outbound']), true);
+  assert.equal(isBidirectional(['Outbound']), false);
 });
 test('presentation sorting is numeric, stable, and never mutates source rows', () => {
   const rows = [{port:'443', id:1}, {port:'80', id:2}, {port:'443', id:3}, {port:'8080', id:4}];

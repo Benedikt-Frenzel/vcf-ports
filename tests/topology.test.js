@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { COMPONENTS, componentForEndpoint, filterByComponents, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
+import { COMPONENTS, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('known latency-diagram endpoint labels map to logical components', () => {
@@ -60,6 +60,24 @@ test('one component includes touching paths; two require a direct path either wa
   assert.equal(filterByComponents(rows,['esx']).length,3);
   assert.equal(filterByComponents(rows,['esx','vcenter']).length,2);
   assert.equal(filterByComponents(rows,['vcenter','infrastructure']).length,0);
+});
+test('firewall rules aggregate per direction, port, and protocol', () => {
+  const rows = [
+    {source:'vCenter Server Management IP address',destination:'ESX Management IP addresses',port:'443',protocol:'TCP',purpose:'management',classification:'Both',product:'vCenter'},
+    {source:'vCenter Server Management IP address',destination:'ESX Management IP addresses',port:'443',protocol:'TCP',purpose:'management',classification:'Both',product:'ESX'},
+    {source:'vCenter Server Management IP address',destination:'ESX Management IP addresses',port:'902',protocol:'TCP',purpose:'host agent',classification:'Outbound',product:'vCenter'},
+    {source:'vCenter Server Management IP address',destination:'vCenter Server Management IP address',port:'443',protocol:'TCP',purpose:'internal',classification:'Cluster Internal',product:'vCenter'},
+  ];
+  const rules = firewallRules(rows);
+  assert.equal(rules.length, 2);
+  assert.equal(rules[0].port, '443');
+  assert.equal(rules[0].records, 2);
+  assert.deepEqual([...rules[0].purposes], ['management']);
+  const snapshotRules = firewallRules(data.rows);
+  const total = snapshotRules.reduce((sum, rule) => sum + rule.records, 0);
+  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return s === d; }).length;
+  assert.equal(total, drawn);
+  assert.ok(snapshotRules.every(rule => COMPONENTS.some(c => c.id === rule.source)));
 });
 test('links aggregate unordered pairs while preserving unique port labels', () => {
   const rows=[
