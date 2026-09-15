@@ -1,0 +1,11 @@
+{
+  "name": "vcf-communication-matrix",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "mise run test",
+    "check": "mise run check",
+    "dev": "mise run dev",
+    "build": "mise run build"
+  }
+}

@@ -1,0 +1,24 @@
+[tools]
+node = "24.8.0"
+python = "3.13.7"
+
+[tasks.dev]
+description = "Serve the single-page app at http://localhost:8080"
+run = "python scripts/serve.py"
+
+[tasks.test]
+description = "Validate data integrity, filtering, matrix aggregation and CSV export"
+run = "node --test tests/*.test.js"
+
+[tasks.check]
+description = "Check JavaScript and Python syntax"
+run = ["node --check app.js", "node --check logic.js", "node --check topology.js", "python -m py_compile scripts/update_data.py scripts/build.py scripts/serve.py"]
+
+[tasks.refresh-data]
+description = "Refresh the checked-in VCF 9.1 snapshot from the public Broadcom Ports API"
+run = "python scripts/update_data.py"
+
+[tasks.build]
+description = "Validate and assemble the static GitHub Pages artifact in dist/"
+depends = ["test", "check"]
+run = "python scripts/build.py"

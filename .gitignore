@@ -1,0 +1,6 @@
+dist/
+__pycache__/
+*.pyc
+node_modules/
+.mise.local.toml
+mise.local.toml
