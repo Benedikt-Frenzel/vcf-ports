@@ -52,4 +52,4 @@ jobs:
             data/vcf-9.1.json
             data/kb327186-urls.json
           delete-branch: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
