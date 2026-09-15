@@ -3,46 +3,122 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="An independent, interactive VCF 9.1 ports and communication matrix based on Broadcom's public Ports and Protocols tool.">
-  <title>VCF 9.1 · Communication Matrix</title>
-  <link rel="stylesheet" href="vendor/clr-ui.min.css"><link rel="stylesheet" href="styles.css">
+  <title>VCF Ports · Communication Matrix</title>
+  <link rel="stylesheet" href="vendor/cds-global.min.css"><link rel="stylesheet" href="vendor/clr-ui.min.css"><link rel="stylesheet" href="styles.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<header class="header header-6"><div class="branding"><span class="brand-mark" aria-hidden="true">⇄</span><span class="title">VCF / Communication explorer</span></div><a href="https://ports.broadcom.com/" target="_blank" rel="noopener" class="header-link">Official source ↗</a></header>
-<div class="disclaimer"><strong>Independent private project.</strong> Not affiliated with, endorsed by, or supported by Broadcom Inc. or any of its subsidiaries. Provided as-is, without warranty.</div>
+
+<header class="header header-6 site-header">
+  <div class="branding">
+    <a class="nav-link" href="./" aria-label="VCF Ports home">
+      <span class="brand-mark" aria-hidden="true">⇄</span>
+      <span class="brand-text"><span class="title">VCF Ports</span><span class="title-sub">Communication explorer</span></span>
+    </a>
+  </div>
+  <div class="header-actions">
+    <span class="header-version">VCF 9.1</span>
+    <a class="btn btn-inverse btn-sm" href="https://ports.broadcom.com/" target="_blank" rel="noopener">Official source ↗</a>
+  </div>
+</header>
+
+<div class="disclaimer" role="note">
+  <span class="disclaimer-icon" aria-hidden="true">ℹ</span>
+  <span><strong>Independent private project.</strong> Not affiliated with, endorsed by, or supported by Broadcom Inc. or any of its subsidiaries. Provided as-is, without warranty.</span>
+</div>
+
 <main id="main">
-  <section class="intro"><div><div class="eyebrow">NETWORK PLANNING / VMWARE CLOUD FOUNDATION</div><h1>Communication matrix <span class="label label-info">VCF 9.1</span></h1><p>Explore who talks to whom. Find the ports, protocols, and purpose behind each connection.</p></div><a class="btn btn-outline" href="#coverage">Data & coverage ↓</a></section>
-  <div id="status" role="status">Loading the source snapshot…</div>
-  <noscript><p>JavaScript is required for the interactive explorer. <a href="data/vcf-9.1.json">Download the source snapshot</a>.</p></noscript>
-  <div id="explorer" hidden>
-    <section class="stats" aria-label="Snapshot summary" id="stats"></section>
-    <section class="filter-panel" aria-label="Connection filters">
-      <div class="filters">
-        <label class="search-label">Search connections<input id="search" class="clr-input" type="search" placeholder="Port, endpoint, purpose…" autocomplete="off"></label>
-        <label>Product<select id="product" class="clr-select"></select></label>
-        <label>Mapped release<select id="release" class="clr-select"></select></label>
-        <label>Protocol<select id="protocol" class="clr-select"></select></label>
-        <label>Classification<select id="classification" class="clr-select"></select></label>
-        <label>Source endpoint<select id="source" class="clr-select"></select></label>
-        <label>Destination endpoint<select id="destination" class="clr-select"></select></label>
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="eyebrow">Network planning · VMware Cloud Foundation</span>
+      <h1>Communication matrix <span class="version-tag">VCF 9.1</span></h1>
+      <p class="lede">Explore the ports, protocols, and service paths between every VCF component — then filter the records behind each connection.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#explorer">Explore the diagram</a>
+        <a class="btn btn-outline" href="#coverage">Data &amp; coverage</a>
       </div>
-      <div class="filter-footer"><span>Filters apply to both views. Endpoint labels are preserved from the source.</span><button id="reset" class="btn btn-sm btn-link">Reset filters</button></div>
+    </div>
+    <section class="stats" aria-label="Snapshot summary" id="stats"></section>
+  </section>
+
+  <div id="status" class="status" role="status">Loading the source snapshot…</div>
+  <noscript><p>JavaScript is required for the interactive explorer. <a href="data/vcf-9.1.json">Download the source snapshot</a>.</p></noscript>
+
+  <div id="explorer" hidden>
+    <section class="card filter-card" aria-label="Connection filters">
+      <div class="card-header">
+        <div><h2 class="card-title">Filters</h2><p class="card-subtitle">Refine the diagram, list, matrix, and CSV export together.</p></div>
+        <button id="reset" class="btn btn-sm btn-link" type="button">Reset filters</button>
+      </div>
+      <div class="card-block">
+        <div class="filters">
+          <label class="search-label">Search connections<input id="search" class="clr-input" type="search" placeholder="Port, endpoint, purpose…" autocomplete="off"></label>
+          <label>Product<select id="product" class="clr-select"></select></label>
+          <label>Mapped release<select id="release" class="clr-select"></select></label>
+          <label>Protocol<select id="protocol" class="clr-select"></select></label>
+          <label>Classification<select id="classification" class="clr-select"></select></label>
+          <label>Source endpoint<select id="source" class="clr-select"></select></label>
+          <label>Destination endpoint<select id="destination" class="clr-select"></select></label>
+        </div>
+        <p class="filter-note">Endpoint labels are preserved exactly from the source tool.</p>
+      </div>
     </section>
-    <div class="toolbar"><div class="btn-group" aria-label="View"><button id="diagram-tab" class="btn btn-sm btn-primary" aria-pressed="true">Path diagram</button><button id="list-tab" class="btn btn-sm" aria-pressed="false">Connection list</button><button id="matrix-tab" class="btn btn-sm" aria-pressed="false">Endpoint matrix</button></div><span id="results" role="status"></span><button id="export" class="btn btn-sm btn-outline">Export filtered CSV ↓</button></div>
+
+    <div class="toolbar">
+      <nav class="view-tabs" role="tablist" aria-label="View">
+        <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
+        <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
+        <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
+      </nav>
+      <span id="results" class="results" role="status"></span>
+      <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
+    </div>
+
     <section id="diagram-view" aria-label="Logical component path diagram">
-      <div class="diagram-intro"><div><h2>VCF infrastructure communication paths</h2><p>Components are placed inside their infrastructure domains. Select a box to draw all direct communication paths, then select a connected box or a path to isolate it. Arrowheads show the source-record direction.</p></div><button id="clear-components" class="btn btn-sm btn-link" disabled>Clear component selection</button></div>
-      <div id="component-selection" class="selection-summary" role="status">No component selected — showing the core infrastructure backbone available under the current filters.</div>
-      <div class="diagram-legend" aria-label="Diagram legend"><span><i class="legend-box"></i> Component</span><span><i class="legend-path"></i> Communication path</span><span>Click a box or path to filter</span></div>
-      <div class="topology-scroll" tabindex="0" aria-label="Scrollable VCF infrastructure diagram"><svg id="topology" class="topology" viewBox="0 0 1500 925" role="group" aria-label="VCF infrastructure components and communication paths"></svg></div>
-      <div id="path-ports" class="path-ports"><strong>Ports on highlighted paths</strong><p>Select a component to highlight its direct communication ports.</p></div>
-      <div class="diagram-actions"><button id="show-connections" class="btn btn-primary" disabled>Open filtered connection list</button><span>Logical aliases are a navigation aid. Source endpoint names remain unchanged in every record.</span></div>
+      <div class="card diagram-card">
+        <div class="card-header">
+          <div><h2 class="card-title">VCF infrastructure communication paths</h2><p class="card-subtitle">Select a box to draw its direct paths, then select a connected box or line to isolate it.</p></div>
+          <button id="clear-components" class="btn btn-sm btn-link" type="button" disabled>Clear selection</button>
+        </div>
+        <div id="component-selection" class="selection-summary" role="status">No component selected — showing the core infrastructure backbone available under the current filters.</div>
+        <div class="diagram-legend" aria-label="Diagram legend"><span><i class="legend-box"></i> Component</span><span><i class="legend-path"></i> Communication path</span><span>Click a box or path to filter</span></div>
+        <div class="topology-scroll" tabindex="0" aria-label="Scrollable VCF infrastructure diagram"><svg id="topology" class="topology" viewBox="0 0 1500 925" role="group" aria-label="VCF infrastructure components and communication paths"></svg></div>
+        <div id="path-ports" class="path-ports"><strong>Ports on the selected path</strong><p>Select a component box, then select a connected box or line. The exact source records remain available in the connection list.</p></div>
+      </div>
+      <div class="diagram-actions"><button id="show-connections" class="btn btn-primary" type="button" disabled>Open filtered connection list</button><span>Logical aliases are a navigation aid. Source endpoint names remain unchanged in every record.</span></div>
     </section>
-    <section id="list-view" hidden aria-label="Connection list"><div class="table-scroll" tabindex="0" aria-label="Scrollable connection table"><table class="table"><thead><tr><th>Product / release</th><th>Source → destination</th><th>Port / protocol</th><th>Purpose & service</th><th>Classification</th></tr></thead><tbody id="rows"></tbody></table></div><div class="pagination"><button id="prev" class="btn btn-sm">Previous</button><span id="page"></span><button id="next" class="btn btn-sm">Next</button></div></section>
-    <section id="matrix-view" hidden aria-label="Endpoint matrix"><p class="view-help">Rows = source, columns = destination. Numbers count matching published entries, not unique firewall rules. Select a cell to inspect its connections. “—” means no matching entry, not that communication is unnecessary. “Both” is preserved as classification; reverse connections are not inferred.</p><div class="matrix-controls"><button id="source-prev" class="btn btn-sm">← Sources</button><span id="source-page"></span><button id="source-next" class="btn btn-sm">Sources →</button><button id="dest-prev" class="btn btn-sm">← Destinations</button><span id="dest-page"></span><button id="dest-next" class="btn btn-sm">Destinations →</button></div><div id="matrix" class="table-scroll" tabindex="0" aria-label="Scrollable endpoint matrix"></div></section>
+
+    <section id="list-view" hidden aria-label="Connection list">
+      <div class="card table-card">
+        <div class="table-scroll" tabindex="0" aria-label="Scrollable connection table"><table class="table"><thead><tr><th>Product / release</th><th>Source → destination</th><th>Port / protocol</th><th>Purpose &amp; service</th><th>Classification</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="pagination"><button id="prev" class="btn btn-sm" type="button">Previous</button><span id="page"></span><button id="next" class="btn btn-sm" type="button">Next</button></div>
+      </div>
+    </section>
+
+    <section id="matrix-view" hidden aria-label="Endpoint matrix">
+      <div class="card matrix-card">
+        <p class="view-help">Rows = source, columns = destination. Numbers count matching published entries, not unique firewall rules. Select a cell to inspect its connections. “—” means no matching entry, not that communication is unnecessary. “Both” is preserved as classification; reverse connections are not inferred.</p>
+        <div class="matrix-controls"><button id="source-prev" class="btn btn-sm" type="button">← Sources</button><span id="source-page"></span><button id="source-next" class="btn btn-sm" type="button">Sources →</button><button id="dest-prev" class="btn btn-sm" type="button">← Destinations</button><span id="dest-page"></span><button id="dest-next" class="btn btn-sm" type="button">Destinations →</button></div>
+        <div id="matrix" class="table-scroll" tabindex="0" aria-label="Scrollable endpoint matrix"></div>
+      </div>
+    </section>
+
     <p id="empty" class="empty" hidden>No matching connections. Try a broader search or reset the filters.</p>
-    <section id="coverage" class="coverage"><h2>Source & version coverage</h2><p id="provenance"></p><p>This snapshot includes only active, published entries explicitly assigned to releases mapped to VCF 9.1 by the official tool. Mapped patch and add-on versions are included; they are not all version 9.1. Choose a product and release for deployment-specific planning. No older-version fallback or invented connections are used.</p><details><summary>View included products, releases, and entry counts</summary><div id="coverage-list"></div></details><p><strong>Diagram interpretation.</strong> The path view is an independent navigation layer inspired by the official VCF 9.1 Fleet Latency logical diagram. It groups exact endpoint labels into logical components but does not reproduce or enforce latency requirements. Lines represent records in this snapshot; they are not topology discovery, reachability tests, or inferred firewall rules. Validate latency requirements in the official diagram and current product documentation.</p><p><strong>Planning aid, not a firewall policy.</strong> Review service descriptions and your enabled features. Validate requirements against the <a href="https://ports.broadcom.com/" target="_blank" rel="noopener">official Ports and Protocols tool</a> and product documentation before making changes. Source entries can overlap; this tool does not deduplicate or infer bidirectional firewall rules.</p><a href="data/vcf-9.1.json" download>Download the complete JSON snapshot</a></section>
+
+    <section id="coverage" class="card coverage">
+      <div class="card-header"><h2 class="card-title">Source &amp; version coverage</h2></div>
+      <div class="card-block">
+        <p id="provenance"></p>
+        <p>This snapshot includes only active, published entries explicitly assigned to releases mapped to VCF 9.1 by the official tool. Mapped patch and add-on versions are included; they are not all version 9.1. Choose a product and release for deployment-specific planning. No older-version fallback or invented connections are used.</p>
+        <details class="coverage-details"><summary>View included products, releases, and entry counts</summary><div id="coverage-list"></div></details>
+        <p class="note"><strong>Diagram interpretation.</strong> The path view is an independent navigation layer inspired by the official VCF 9.1 Fleet Latency logical diagram. It groups exact endpoint labels into logical components but does not reproduce or enforce latency requirements. Lines represent records in this snapshot; they are not topology discovery, reachability tests, or inferred firewall rules. Validate latency requirements in the official diagram and current product documentation.</p>
+        <p class="note"><strong>Planning aid, not a firewall policy.</strong> Review service descriptions and your enabled features. Validate requirements against the <a href="https://ports.broadcom.com/" target="_blank" rel="noopener">official Ports and Protocols tool</a> and product documentation before making changes. Source entries can overlap; this tool does not deduplicate or infer bidirectional firewall rules.</p>
+        <a class="btn btn-outline btn-sm" href="data/vcf-9.1.json" download>Download the complete JSON snapshot</a>
+      </div>
+    </section>
   </div>
 </main>
-<footer>Private community project · No Broadcom or subsidiary support · Built with <a href="https://clarity.design/">Clarity Design</a> · All product names and trademarks belong to their respective owners.</footer>
+
+<footer class="site-footer">Private community project · No Broadcom or subsidiary support · Built with <a href="https://clarity.design/">Clarity Design</a> · All product names and trademarks belong to their respective owners.</footer>
 </body></html>

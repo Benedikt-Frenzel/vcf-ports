@@ -75,14 +75,14 @@ The refresh command runs only on explicit request, not on page load or deploymen
 - `logic.js`: independently tested filtering, matrix aggregation, and CSV helpers.
 - `topology.js`: tested logical component aliases, path selection, link aggregation, and highlighted port sets.
 - `data/vcf-9.1.json`: source snapshot and coverage metadata.
-- `vendor/`: locally hosted Clarity CSS and its upstream license.
+- `vendor/`: locally hosted CDS design tokens, Clarity CSS, and upstream licenses.
 - `scripts/`: snapshot refresh and static build.
 - `tests/`: dependency-free Node tests.
 - `mise.toml`: development tools and tasks.
 
 ## Third-party notices
 
-Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui.min.css`. Its MIT license is included in `vendor/CLARITY-LICENSE` (from the upstream v17.9.0 tag). Port data is attributed to Broadcom's public Ports and Protocols tool; no ownership or independent license over that source data is claimed. Review applicable upstream terms before redistributing it. No Broadcom branding or logo is used as this project's identity.
+Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui.min.css` together with its required CDS design tokens from `https://unpkg.com/@cds/core@6.9.2/global.min.css`. Their MIT licenses are included in `vendor/CLARITY-LICENSE` and `vendor/CDS-LICENSE`. Port data is attributed to Broadcom's public Ports and Protocols tool; no ownership or independent license over that source data is claimed. Review applicable upstream terms before redistributing it. No Broadcom branding or logo is used as this project's identity.
 
 ## Verification
 

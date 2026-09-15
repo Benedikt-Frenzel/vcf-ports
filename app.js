@@ -32,8 +32,8 @@ function render() {
   $('matrix-view').hidden = view !== 'matrix' || !filtered.length;
   $('diagram-view').hidden = view !== 'diagram';
   for (const v of ['diagram','list','matrix']) {
-    $(`${v}-tab`).classList.toggle('btn-primary', view === v);
-    $(`${v}-tab`).setAttribute('aria-pressed', String(view === v));
+    $(`${v}-tab`).classList.toggle('active', view === v);
+    $(`${v}-tab`).setAttribute('aria-selected', String(view === v));
   }
   if (view === 'list') renderList();
   else if (view === 'matrix') renderMatrix();
