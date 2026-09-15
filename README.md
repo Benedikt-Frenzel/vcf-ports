@@ -22,9 +22,11 @@ The project pins Node and Python in `mise.toml`; GitHub Actions uses the same co
 
 ```sh
 mise run test          # Data integrity, filters, matrix counts, CSV safety
+mise run test-data     # Python normaliser + bundled-snapshot checks
 mise run check         # JavaScript and Python syntax checks
 mise run build         # Checks + tests + static artifact in dist/
 mise run refresh-data  # Explicit upstream refresh; review changes before committing
+mise run normalize-snapshot  # Apply the data normaliser without re-fetching
 ```
 
 ## GitHub Pages
@@ -65,6 +67,8 @@ Pull requests run validation without deployment. All asset paths are relative, s
 API origin: `https://ports.esp.spespg1.vmw.saas.broadcom.com/`.
 
 Only **published, active** entries with at least one explicitly mapped release ID are retained. Release memberships are intersected with the mapping; unrelated releases on shared records are excluded. The initial snapshot contains **1,209 entries across 20 products**. Mapping includes patch releases and add-ons with different version numbers (for example, Avi and vDefend). This is not a claim that every mapped product itself has release number 9.1.
+
+Protocol, classification, and ICMP port labels are normalised on import (and via `mise run normalize-snapshot`) to a small canonical set: **TCP, UDP, ICMP, HTTPS, TCP/UDP, HTTP, TLS, ESP, NFS** for protocols; **Inbound, Outbound, Both, N/A, Internal** for classifications; `ICMP Type X/Code Y` for ICMP entries. The full mapping lives in `scripts/data_normalize.py`.
 
 Endpoint names, ports, classifications, purpose, and service descriptions are retained as source text. Entries are not split, silently combined, or deduplicated. The path diagram maps those exact endpoint labels to documented local presentation aliases in `topology.js`; unmatched labels remain visible under “Infrastructure & External Services”. This grouping is a navigation aid and does not alter exported records. One product-context rule is intentional: VMSP endpoints included in the `VCF Automation` release are presented at the Automation service boundary, while the same endpoint in `VCF Management Services` remains under Management Services. This exposes the source-backed Automation ↔ vCenter TCP 443 path without rewriting the underlying endpoint names.
 

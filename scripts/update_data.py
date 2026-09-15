@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+from data_normalize import normalise_row
+
 BASE = 'https://ports.esp.spespg1.vmw.saas.broadcom.com/manage/view/v1/'
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,7 +38,7 @@ def main():
                 continue
             entry = {k: row.get(k, '') or '' for k in ['id', 'port', 'protocol', 'source', 'destination', 'purpose', 'serviceDescription', 'classification', 'publishDate']}
             entry.update(product=p['name'], productId=p['id'], releases=[{'id': r['id'], 'name': r['displayName']} for r in releases])
-            rows.append(entry)
+            rows.append(normalise_row(entry))
             count += 1
         p['rowCount'] = count
         print(p['name'], count)
