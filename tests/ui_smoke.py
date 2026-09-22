@@ -33,8 +33,9 @@ try:
         assert page.locator('.toolbar .view-tab').count()==3
         assert 'sticky' in page.locator('.toolbar').evaluate('(e)=>getComputedStyle(e).position')
         assert page.locator('header .brand-copy .title').inner_text()=='VCF Tools'
-        assert page.locator('header .header-actions .nav-link').all_inner_texts()==['Overview','Ports','Compliance','GitHub ↗']
+        assert page.locator('header .header-actions .nav-link').all_inner_texts()==['Overview','Ports','Compliance','Feedback ✉','GitHub ↗']
         assert page.locator('header .header-actions .active').inner_text()=='Ports'
+        assert 'subject=%5BVCF%20Ports%5D%20Feedback' in page.locator('header .header-actions a',has_text='Feedback').get_attribute('href')
         # Dropdown UX: counts in options, endpoints grouped by component.
         first_source=page.locator('#source option').nth(1)
         assert first_source.evaluate(r'(o)=>/\s\(\d[\d,]*\)$/.test(o.textContent)')
@@ -150,7 +151,7 @@ try:
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('header').evaluate('(e)=>e.scrollWidth<=e.clientWidth')
         assert page.locator('header .brand-copy').is_hidden()
-        assert page.locator('header .header-actions .nav-link:visible').all_inner_texts()==['Overview','Ports','Compliance']
+        assert page.locator('header .header-actions .nav-link:visible').all_inner_texts()==['Ports','Compliance','Feedback ✉']
         assert page.locator('#explorer>:first-child').get_attribute('class')=='toolbar'
         page.set_viewport_size({'width':390,'height':844})
         for view in ['list','matrix','diagram']:
