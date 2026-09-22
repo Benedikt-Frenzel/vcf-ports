@@ -169,30 +169,30 @@ function buildExportSvg() {
   const background = svgElement('rect');
   background.setAttribute('width', String(width));
   background.setAttribute('height', String(exportHeight));
-  background.setAttribute('fill', '#eef3f6');
+  background.setAttribute('fill', '#eef2ea');
   const details = svgElement('g');
   const panel = svgElement('rect');
   panel.setAttribute('x', '25'); panel.setAttribute('y', '945'); panel.setAttribute('width', '1450'); panel.setAttribute('height', String(exportHeight - 970)); panel.setAttribute('rx', '14');
-  panel.setAttribute('style', 'fill:#fff;stroke:#9db1bd;stroke-width:1.4');
+  panel.setAttribute('style', 'fill:#fffdf8;stroke:#a8b7a9;stroke-width:1.4');
   details.append(panel);
   const addText = (value,x,y,style) => {
     const text = svgElement('text');
-    text.setAttribute('x', String(x)); text.setAttribute('y', String(y)); text.setAttribute('style', `font-family:"Metropolis",Arial,sans-serif;fill:#12252f;${style}`);
+    text.setAttribute('x', String(x)); text.setAttribute('y', String(y)); text.setAttribute('style', `font-family:"Metropolis",Arial,sans-serif;fill:#182418;${style}`);
     text.textContent = value; details.append(text);
   };
   addText('Selected path ports and directions', 55, 985, 'font-size:22px;font-weight:700');
-  addText(`${directionGroups.length} directions · ${filtered.length} published entries · ${uniquePorts(filtered).length} unique port / protocol labels`, 55, 1015, 'font-size:13px;fill:#5a6b76');
+  addText(`${directionGroups.length} directions · ${filtered.length} published entries · ${uniquePorts(filtered).length} unique port / protocol labels`, 55, 1015, 'font-size:13px;fill:#5a6658');
   let y = 1060;
   for (const group of directionGroups) {
     addText(`${componentById.get(group.sourceId).name} → ${componentById.get(group.destinationId).name}`, 55, y, 'font-size:15px;font-weight:600');
-    addText(`${group.rows.length} ${group.rows.length===1?'entry':'entries'}`, 1445, y, 'font-size:12px;fill:#5a6b76;text-anchor:end');
+    addText(`${group.rows.length} ${group.rows.length===1?'entry':'entries'}`, 1445, y, 'font-size:12px;fill:#5a6658;text-anchor:end');
     y += 24;
     for (const line of group.lines) {
-      addText(line, 55, y, 'font-family:ui-monospace,monospace;font-size:13px;fill:#334e5c');
+      addText(line, 55, y, 'font-family:ui-monospace,monospace;font-size:13px;fill:#3d5846');
       y += 22;
     }
     const separator = svgElement('line');
-    separator.setAttribute('x1', '55'); separator.setAttribute('x2', '1445'); separator.setAttribute('y1', String(y)); separator.setAttribute('y2', String(y)); separator.setAttribute('style', 'stroke:#e4e9ec;stroke-width:1');
+    separator.setAttribute('x1', '55'); separator.setAttribute('x2', '1445'); separator.setAttribute('y1', String(y)); separator.setAttribute('y2', String(y)); separator.setAttribute('style', 'stroke:#e8e0d0;stroke-width:1');
     details.append(separator);
     y += 19;
   }
@@ -229,7 +229,7 @@ async function downloadTopologyPng() {
   canvas.height = Math.round(height * scale);
   const context = canvas.getContext('2d');
   context.setTransform(scale, 0, 0, scale, 0, 0);
-  context.fillStyle = '#eef3f6';
+    context.fillStyle = '#eef2ea';
   context.fillRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
   const png = await new Promise((resolve, reject) => {
