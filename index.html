@@ -12,21 +12,17 @@
 
 <header class="header header-6 site-header">
   <div class="branding">
-    <a class="nav-link" href="./" aria-label="VCF Ports home">
-      <span class="brand-mark" aria-hidden="true">⇄</span>
-      <span class="brand-text"><span class="title">VCF Ports</span><span class="title-sub">Communication explorer · VCF 9.1</span></span>
+    <a class="nav-link" href="https://benedikt-frenzel.github.io/vcf-tools/" aria-label="VCF Tools home">
+      <span class="brand-mark" aria-hidden="true">◆</span>
+      <span class="brand-copy"><span class="title">VCF Tools</span><span class="subtitle">Independent community utilities</span></span>
     </a>
   </div>
-  <nav class="view-tabs header-tabs" id="view-tabs" role="tablist" aria-label="View" hidden>
-    <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
-    <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
-    <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
-  </nav>
-  <nav class="header-actions" aria-label="VCF Tools">
-    <a class="suite-nav" href="https://benedikt-frenzel.github.io/vcf-tools/">All tools</a>
-    <a class="suite-nav" href="https://benedikt-frenzel.github.io/vcf-compliance/">Compliance</a>
-    <a class="header-feedback" href="mailto:benedikt.frenzel@broadcom.com?subject=%5BVCF-Ports%5D%3A%20%3Cyour%20text%20here%3E">Feedback ✉</a>
-    <a class="btn btn-inverse btn-sm" href="https://ports.broadcom.com/" target="_blank" rel="noopener">Official source ↗</a>
+  <nav class="header-actions" aria-label="Primary navigation">
+    <a class="nav-link hide-narrow" href="https://benedikt-frenzel.github.io/vcf-tools/">Overview</a>
+    <a class="nav-link active" href="./" aria-current="page">Ports</a>
+    <a class="nav-link" href="https://benedikt-frenzel.github.io/vcf-compliance/">Compliance</a>
+    <a class="nav-link" href="mailto:benedikt.frenzel@broadcom.com?subject=%5BVCF%20Ports%5D%20Feedback&amp;body=Page%3A%20https%3A%2F%2Fbenedikt-frenzel.github.io%2Fvcf-ports%2F%0A%0AFeedback%3A%0A">Feedback ✉</a>
+    <a class="nav-link hide-mobile" href="https://github.com/Benedikt-Frenzel/vcf-ports" target="_blank" rel="noopener">GitHub ↗</a>
   </nav>
 </header>
 
@@ -44,6 +40,7 @@
       <div class="hero-actions">
         <a class="btn btn-primary" href="#explorer">Explore the diagram</a>
         <a class="btn btn-outline" href="#coverage">Data &amp; coverage</a>
+        <a class="btn btn-link" href="https://ports.broadcom.com/" target="_blank" rel="noopener">Official source ↗</a>
       </div>
     </div>
     <section class="stats" aria-label="Snapshot summary" id="stats"></section>
@@ -53,6 +50,18 @@
   <noscript><p>JavaScript is required for the interactive explorer. <a href="data/vcf-9.1.json">Download the source snapshot</a>.</p></noscript>
 
   <div id="explorer" hidden>
+    <div class="toolbar">
+      <nav class="view-tabs" id="view-tabs" role="tablist" aria-label="Connection view" hidden>
+        <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
+        <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
+        <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
+      </nav>
+      <span id="results" class="results" role="status"></span>
+      <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
+      <button id="export-firewall" class="btn btn-sm btn-outline" type="button" title="Firewall request template with your mapped addresses">Firewall CSV ↓</button>
+      <button id="export-firewall-md" class="btn btn-sm btn-outline" type="button" title="Markdown firewall request for tickets and docs">Firewall MD ↓</button>
+    </div>
+
     <section class="card filter-card" aria-label="Connection filters">
       <div class="card-header">
         <div><h2 class="card-title">Filters</h2><p class="card-subtitle">Refine the diagram, list, matrix, and CSV export together.</p></div>
@@ -77,7 +86,7 @@
       <details class="env-details">
         <summary>Environment mapping <span class="count-badge">optional · stays in your browser</span></summary>
         <div class="card-block">
-          <p class="env-note">Map your deployment addresses once, then export a firewall request template with concrete source and destination objects. Paste a VCF 9.x installer JSON (for example the <a href="https://github.com/lamw/vcf-91-in-box" target="_blank" rel="noopener">vcf-91-in-box</a> config) to prefill hostnames, IP pools, and subnets — passwords in the pasted JSON are never read or stored — or fill components manually. Values stay in this browser only (localStorage); nothing is uploaded.</p>
+          <p class="env-note">Map your deployment addresses once, then export a firewall request template with concrete source and destination objects. Paste a <a href="https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/deployment/deploying-a-new-vmware-cloud-foundation-or-vmware-vsphere-foundation-private-cloud-/use-a-json-specification-to-deploy-vmware-cloud-foundation-or-vmware-vsphere-foundation.html" target="_blank" rel="noopener">VCF 9.x installer JSON</a> (for example the <a href="https://github.com/lamw/vcf-91-in-box" target="_blank" rel="noopener">vcf-91-in-box</a> config) to prefill hostnames, IP pools, subnets, DNS, and NTP — passwords in the pasted JSON are never read or stored — or fill components and external services manually. Values stay in this browser only (localStorage); nothing is uploaded.</p>
           <div class="env-import">
             <textarea id="env-json" rows="4" spellcheck="false" placeholder='{ "vcfInstanceName": "…", "hostSpecs": [ { "hostname": "esx01.lab" } ], "vcenterSpec": { … } }'></textarea>
             <div class="env-actions">
@@ -91,13 +100,6 @@
         </div>
       </details>
     </section>
-
-    <div class="toolbar">
-      <span id="results" class="results" role="status"></span>
-      <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
-      <button id="export-firewall" class="btn btn-sm btn-outline" type="button" title="Firewall request template with your mapped addresses">Firewall CSV ↓</button>
-      <button id="export-firewall-md" class="btn btn-sm btn-outline" type="button" title="Markdown firewall request for tickets and docs">Firewall MD ↓</button>
-    </div>
 
     <section id="diagram-view" aria-label="Logical component path diagram">
       <div class="card diagram-card">
@@ -167,5 +169,5 @@
   </div>
 </main>
 
-<footer class="site-footer">Independent community project · <a href="https://benedikt-frenzel.github.io/vcf-tools/">VCF Tools</a> · <a href="mailto:benedikt.frenzel@broadcom.com?subject=%5BVCF-Ports%5D%3A%20%3Cyour%20text%20here%3E">Feedback ✉</a> · Built with <a href="https://clarity.design/">Clarity Design</a> · Product names and trademarks belong to their respective owners.</footer>
+<footer class="site-footer">Independent community project · <a href="https://benedikt-frenzel.github.io/vcf-tools/">VCF Tools</a> · <a href="mailto:benedikt.frenzel@broadcom.com?subject=%5BVCF%20Ports%5D%20Feedback&amp;body=Page%3A%20https%3A%2F%2Fbenedikt-frenzel.github.io%2Fvcf-ports%2F%0A%0AFeedback%3A%0A">Feedback ✉</a> · Built with <a href="https://clarity.design/">Clarity Design</a> · Product names and trademarks belong to their respective owners.</footer>
 </body></html>

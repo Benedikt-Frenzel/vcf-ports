@@ -26,13 +26,16 @@ try:
         page.evaluate('document.fonts.ready')
         assert 'Metropolis' in page.locator('body').evaluate('(e)=>getComputedStyle(e).fontFamily')
         assert page.locator('body').evaluate('(e)=>getComputedStyle(e).getPropertyValue("--clr-font")').strip()
-        # Prominent tabs live in the sticky site header; toolbar keeps count + export.
+        # The shared suite navbar stays consistent; app-specific tabs live in the sticky toolbar.
         assert page.locator('.view-tab.active').count()==1
-        assert page.locator('header .view-tab').count()==3
+        assert page.locator('header .view-tab').count()==0
         assert page.locator('#view-tabs').is_visible()
-        assert page.locator('.toolbar .view-tab').count()==0
+        assert page.locator('.toolbar .view-tab').count()==3
         assert 'sticky' in page.locator('.toolbar').evaluate('(e)=>getComputedStyle(e).position')
-        assert page.locator('.header-feedback').get_attribute('href').startswith('mailto:benedikt.frenzel@broadcom.com?subject=')
+        assert page.locator('header .brand-copy .title').inner_text()=='VCF Tools'
+        assert page.locator('header .header-actions .nav-link').all_inner_texts()==['Overview','Ports','Compliance','Feedback ✉','GitHub ↗']
+        assert page.locator('header .header-actions .active').inner_text()=='Ports'
+        assert 'subject=%5BVCF%20Ports%5D%20Feedback' in page.locator('header .header-actions a',has_text='Feedback').get_attribute('href')
         # Dropdown UX: counts in options, endpoints grouped by component.
         first_source=page.locator('#source option').nth(1)
         assert first_source.evaluate(r'(o)=>/\s\(\d[\d,]*\)$/.test(o.textContent)')
@@ -46,6 +49,12 @@ try:
         assert page.locator('.filter-chip').count()==1
         page.locator('.filter-chip').click()
         assert page.locator('.filter-chip').is_hidden()
+        page.goto(base+'?components=installer',wait_until='networkidle')
+        assert page.locator('.node.selected').get_attribute('data-component')=='installer'
+        assert 'VCF Installer selected' in page.locator('#component-selection').inner_text()
+        assert page.locator('.edge.highlighted').count()>=10
+        page.locator('#diagram-view').scroll_into_view_if_needed()
+        page.screenshot(path=str(shots/'installer-paths.png'))
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
@@ -111,12 +120,14 @@ try:
         page.locator('#reset').click()
         # Environment mapping: import installer JSON, persist, firewall exports.
         page.locator('.env-details summary').click()
-        installer='{"hostSpecs":[{"hostname":"esx01.vcf.lab","credentials":{"password":"TopSecret-123"}},{"hostname":"esx02.vcf.lab"}],"vcenterSpec":{"vcenterHostname":"vc01.vcf.lab"},"licenseServerSpec":{"hostname":"vcf-lic01.vcf.lab"},"dnsSpec":{"nameservers":["192.168.30.29"]}}'
+        installer='{"hostSpecs":[{"hostname":"esx01.vcf.lab","credentials":{"password":"TopSecret-123"}},{"hostname":"esx02.vcf.lab"}],"vcenterSpec":{"vcenterHostname":"vc01.vcf.lab"},"licenseServerSpec":{"hostname":"vcf-lic01.vcf.lab"},"dnsSpec":{"nameservers":["192.168.30.29"]},"ntpServers":["192.168.30.30"]}'
         page.locator('#env-json').fill(installer)
         page.locator('#env-import').click()
-        assert 'Imported 4 components' in page.locator('#env-status').inner_text()
+        assert 'Imported 5 components' in page.locator('#env-status').inner_text()
         vcenter_value=page.locator('.env-field input[data-component="vcenter"]').input_value()
         assert vcenter_value=='vc01.vcf.lab', vcenter_value
+        assert page.locator('.env-field input[data-component="external-dns"]').input_value()=='192.168.30.29'
+        assert page.locator('.env-field input[data-component="external-ntp"]').input_value()=='192.168.30.30'
         page.reload(wait_until='networkidle')
         assert page.locator('.env-field input[data-component="vcenter"]').input_value()=='vc01.vcf.lab'
         with page.expect_download() as download:
@@ -126,15 +137,19 @@ try:
         assert content.startswith('"Source address"')
         assert 'vc01.vcf.lab' in content and '<NSX IPs / FQDNs>' in content
         assert 'esx01.vcf.lab, esx02.vcf.lab' in content
+        assert '"192.168.30.29","53","UDP"' in content
+        assert '"192.168.30.30","123","UDP"' in content
         with page.expect_download() as download:
             page.locator('#export-firewall-md').click()
         md=open(download.value.path(),encoding='utf-8').read()
         assert md.startswith('# VCF 9.1 firewall request')
         assert '| vc01.vcf.lab |' in md
+        assert '192.168.30.29' in md and '192.168.30.30' in md
         assert 'TopSecret' not in content and 'TopSecret' not in md
         page.locator('.env-details summary').click()
         page.locator('#env-clear').click()
         assert page.locator('.env-field input[data-component="vcenter"]').input_value()==''
+        assert page.locator('.env-field input[data-component="external-dns"]').input_value()==''
         groups=page.locator('.domain-group>h3').all_inner_texts()
         assert any('Broadcom domains' in g for g in groups) and any('Third-party' in g for g in groups), groups
         assert page.locator('.domain-row').count()>0
@@ -145,6 +160,12 @@ try:
         page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')
         assert page.locator('.domain-row').count()<25
         page.locator('#reset').click()
+        page.set_viewport_size({'width':320,'height':844})
+        page.goto(base+'?components=vcenter',wait_until='networkidle')
+        assert page.locator('header').evaluate('(e)=>e.scrollWidth<=e.clientWidth')
+        assert page.locator('header .brand-copy').is_hidden()
+        assert page.locator('header .header-actions .nav-link:visible').all_inner_texts()==['Ports','Compliance','Feedback ✉']
+        assert page.locator('#explorer>:first-child').get_attribute('class')=='toolbar'
         page.set_viewport_size({'width':390,'height':844})
         for view in ['list','matrix','diagram']:
             page.goto(base+f'?view={view}&components=automation,vcenter',wait_until='networkidle')

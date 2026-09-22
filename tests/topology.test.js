@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { COMPONENTS, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, componentForEndpoint, environmentKeyForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('known latency-diagram endpoint labels map to logical components', () => {
@@ -30,7 +30,8 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'Offline Depot ':'infrastructure',
     'License Hub Node IP Pool':'licensing',
     'License Server Management IP address':'licensing',
-    'VCF Installer Management IP address':'management',
+    'VCF Installer Management IP address':'installer',
+    'VCF Installer (internal/loopback)':'installer',
     'DNS Resolvers':'infrastructure'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
@@ -75,9 +76,19 @@ test('firewall rules aggregate per direction, port, and protocol', () => {
   assert.deepEqual([...rules[0].purposes], ['management']);
   const snapshotRules = firewallRules(data.rows);
   const total = snapshotRules.reduce((sum, rule) => sum + rule.records, 0);
-  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return s === d; }).length;
+  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return environmentKeyForEndpoint(row.source,s) === environmentKeyForEndpoint(row.destination,d); }).length;
   assert.equal(total, drawn);
-  assert.ok(snapshotRules.every(rule => COMPONENTS.some(c => c.id === rule.source)));
+  const environmentIds=new Set([...COMPONENTS,...ENVIRONMENT_SERVICES].map(item => item.id));
+  assert.ok(snapshotRules.every(rule => environmentIds.has(rule.source) && environmentIds.has(rule.destination)));
+});
+test('firewall rules keep external infrastructure services separate', () => {
+  const rules=firewallRules([
+    {source:'vCenter Server Management IP address',destination:'DNS Resolvers',port:'53',protocol:'UDP',purpose:'DNS',classification:'Outbound'},
+    {source:'vCenter Server Management IP address',destination:'NTP Server',port:'123',protocol:'UDP',purpose:'NTP',classification:'Outbound'},
+    {source:'VCF Identity Broker',destination:'Microsoft Active Directory Domain Controllers',port:'636',protocol:'TCP',purpose:'LDAPS',classification:'Outbound'}
+  ]);
+  assert.deepEqual(rules.map(rule => rule.destination),['external-directory','external-dns','external-ntp']);
+  assert.deepEqual(rules.map(rule => rule.port),['636','53','123']);
 });
 test('links aggregate unordered pairs while preserving unique port labels', () => {
   const rows=[
@@ -87,4 +98,13 @@ test('links aggregate unordered pairs while preserving unique port labels', () =
   const links=topologyLinks(rows);
   assert.equal(links.length,1); assert.equal(links[0].count,2); assert.equal(links[0].ports.size,2); assert.equal(links[0].directions.size,2);
   assert.deepEqual(uniquePorts(rows),['443 / TCP','902 / TCP']);
+});
+test('VCF Installer has its own source-backed deployment paths', () => {
+  const installerRows=data.rows.filter(row => /VCF Installer/i.test(row.source) || /VCF Installer/i.test(row.destination));
+  assert.equal(installerRows.length,42);
+  const links=topologyLinks(installerRows);
+  const destinations=new Set(links.flatMap(link => [link.source,link.destination]).filter(id => id !== 'installer'));
+  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','identity','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
+    assert.ok(destinations.has(id), `missing Installer path to ${id}`);
+  assert.ok(links.every(link => link.source === 'installer' || link.destination === 'installer'));
 });
