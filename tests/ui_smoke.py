@@ -26,13 +26,15 @@ try:
         page.evaluate('document.fonts.ready')
         assert 'Metropolis' in page.locator('body').evaluate('(e)=>getComputedStyle(e).fontFamily')
         assert page.locator('body').evaluate('(e)=>getComputedStyle(e).getPropertyValue("--clr-font")').strip()
-        # Prominent tabs live in the sticky site header; toolbar keeps count + export.
+        # The shared suite navbar stays consistent; app-specific tabs live in the sticky toolbar.
         assert page.locator('.view-tab.active').count()==1
-        assert page.locator('header .view-tab').count()==3
+        assert page.locator('header .view-tab').count()==0
         assert page.locator('#view-tabs').is_visible()
-        assert page.locator('.toolbar .view-tab').count()==0
+        assert page.locator('.toolbar .view-tab').count()==3
         assert 'sticky' in page.locator('.toolbar').evaluate('(e)=>getComputedStyle(e).position')
-        assert page.locator('.header-feedback').get_attribute('href').startswith('mailto:benedikt.frenzel@broadcom.com?subject=')
+        assert page.locator('header .brand-copy .title').inner_text()=='VCF Tools'
+        assert page.locator('header .header-actions .nav-link').all_inner_texts()==['Overview','Ports','Compliance','GitHub ↗']
+        assert page.locator('header .header-actions .active').inner_text()=='Ports'
         # Dropdown UX: counts in options, endpoints grouped by component.
         first_source=page.locator('#source option').nth(1)
         assert first_source.evaluate(r'(o)=>/\s\(\d[\d,]*\)$/.test(o.textContent)')
@@ -144,6 +146,12 @@ try:
         page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')
         assert page.locator('.domain-row').count()<25
         page.locator('#reset').click()
+        page.set_viewport_size({'width':320,'height':844})
+        page.goto(base+'?components=vcenter',wait_until='networkidle')
+        assert page.locator('header').evaluate('(e)=>e.scrollWidth<=e.clientWidth')
+        assert page.locator('header .brand-copy').is_hidden()
+        assert page.locator('header .header-actions .nav-link:visible').all_inner_texts()==['Overview','Ports','Compliance']
+        assert page.locator('#explorer>:first-child').get_attribute('class')=='toolbar'
         page.set_viewport_size({'width':390,'height':844})
         for view in ['list','matrix','diagram']:
             page.goto(base+f'?view={view}&components=automation,vcenter',wait_until='networkidle')
