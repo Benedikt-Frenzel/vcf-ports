@@ -7,8 +7,8 @@ description = "Serve the single-page app at http://localhost:8080"
 run = "python scripts/serve.py"
 
 [tasks.test]
-description = "Validate data integrity, filtering, matrix aggregation and CSV export"
-run = "node --test tests/*.test.js"
+description = "Install Node deps, then validate data integrity, filtering, matrix aggregation, CSV export, and a11y"
+run = ["npm ci", "node --test tests/*.test.js"]
 
 [tasks.test-data]
 description = "Validate the Python data normaliser and the bundled snapshot"
