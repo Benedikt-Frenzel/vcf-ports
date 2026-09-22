@@ -7,7 +7,7 @@ out = root / 'dist'
 if out.exists():
     shutil.rmtree(out)
 out.mkdir()
-for name in ['index.html', 'styles.css', 'app.js', 'logic.js', 'topology.js']:
+for name in ['index.html', 'styles.css', 'app.js', 'logic.js', 'topology.js', 'theme.js']:
     shutil.copy2(root / name, out / name)
 for name in ['vendor', 'data']:
     shutil.copytree(root / name, out / name)

@@ -16,7 +16,7 @@ run = "python tests/data_normalize_test.py"
 
 [tasks.check]
 description = "Check JavaScript and Python syntax"
-run = ["node --check app.js", "node --check logic.js", "node --check topology.js", "python -m py_compile scripts/update_data.py scripts/update_kb_urls.py scripts/normalize_snapshot.py scripts/build.py scripts/serve.py"]
+run = ["node --check app.js", "node --check logic.js", "node --check topology.js", "node --check theme.js", "python -m py_compile scripts/update_data.py scripts/update_kb_urls.py scripts/normalize_snapshot.py scripts/build.py scripts/serve.py"]
 
 [tasks.refresh-data]
 description = "Refresh the checked-in VCF 9.1 snapshot from the public Broadcom Ports API"
