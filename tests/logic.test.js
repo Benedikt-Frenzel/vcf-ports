@@ -87,7 +87,8 @@ test('installer config import maps addressing and never touches credentials', ()
   assert.equal(mapping.licensing, 'vcf-lic01.vcf.lab');
   assert.equal(mapping.identity, 'vcf-idb01.vcf.lab');
   assert.equal(mapping.vcenter, 'vc01.vcf.lab');
-  assert.ok(mapping.infrastructure.includes('192.168.30.29'));
+  assert.equal(mapping['external-dns'], '192.168.30.29');
+  assert.equal(mapping['external-ntp'], '96.19.94.82');
   assert.ok(!JSON.stringify(mapping).includes('secret-password'), 'credentials must not leak');
 });
 test('firewall templates fill mapped addresses and keep placeholders for gaps', () => {
