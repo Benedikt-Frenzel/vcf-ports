@@ -146,6 +146,12 @@ try:
         page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')
         assert page.locator('.domain-row').count()<25
         page.locator('#reset').click()
+        page.set_viewport_size({'width':320,'height':844})
+        page.goto(base+'?components=vcenter',wait_until='networkidle')
+        assert page.locator('header').evaluate('(e)=>e.scrollWidth<=e.clientWidth')
+        assert page.locator('header .brand-copy').is_hidden()
+        assert page.locator('header .header-actions .nav-link:visible').all_inner_texts()==['Overview','Ports','Compliance']
+        assert page.locator('#explorer>:first-child').get_attribute('class')=='toolbar'
         page.set_viewport_size({'width':390,'height':844})
         for view in ['list','matrix','diagram']:
             page.goto(base+f'?view={view}&components=automation,vcenter',wait_until='networkidle')

@@ -49,6 +49,18 @@
   <noscript><p>JavaScript is required for the interactive explorer. <a href="data/vcf-9.1.json">Download the source snapshot</a>.</p></noscript>
 
   <div id="explorer" hidden>
+    <div class="toolbar">
+      <nav class="view-tabs" id="view-tabs" role="tablist" aria-label="Connection view" hidden>
+        <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
+        <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
+        <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
+      </nav>
+      <span id="results" class="results" role="status"></span>
+      <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
+      <button id="export-firewall" class="btn btn-sm btn-outline" type="button" title="Firewall request template with your mapped addresses">Firewall CSV ↓</button>
+      <button id="export-firewall-md" class="btn btn-sm btn-outline" type="button" title="Markdown firewall request for tickets and docs">Firewall MD ↓</button>
+    </div>
+
     <section class="card filter-card" aria-label="Connection filters">
       <div class="card-header">
         <div><h2 class="card-title">Filters</h2><p class="card-subtitle">Refine the diagram, list, matrix, and CSV export together.</p></div>
@@ -87,18 +99,6 @@
         </div>
       </details>
     </section>
-
-    <div class="toolbar">
-      <nav class="view-tabs" id="view-tabs" role="tablist" aria-label="Connection view" hidden>
-        <button id="diagram-tab" class="view-tab active" role="tab" aria-selected="true" aria-controls="diagram-view">Path diagram</button>
-        <button id="list-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="list-view">Connection list</button>
-        <button id="matrix-tab" class="view-tab" role="tab" aria-selected="false" aria-controls="matrix-view">Endpoint matrix</button>
-      </nav>
-      <span id="results" class="results" role="status"></span>
-      <button id="export" class="btn btn-sm btn-outline" type="button">Export CSV ↓</button>
-      <button id="export-firewall" class="btn btn-sm btn-outline" type="button" title="Firewall request template with your mapped addresses">Firewall CSV ↓</button>
-      <button id="export-firewall-md" class="btn btn-sm btn-outline" type="button" title="Markdown firewall request for tickets and docs">Firewall MD ↓</button>
-    </div>
 
     <section id="diagram-view" aria-label="Logical component path diagram">
       <div class="card diagram-card">

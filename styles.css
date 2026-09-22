@@ -395,4 +395,6 @@ summary{cursor:pointer;color:var(--vp-primary);padding:10px 0;font-weight:600;fo
 @media(max-width:440px){
   .filters{grid-template-columns:1fr}
   .search-label{grid-column:auto}
+  .brand-copy{display:none}
+  .site-header .header-actions .nav-link{padding:0 5px;font-size:11.5px}
 }
