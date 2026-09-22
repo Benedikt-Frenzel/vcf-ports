@@ -196,6 +196,7 @@ function renderTopology(baseRows) {
     ['operations','management'],['operations','vcenter'],['operations','sddc'],['operations','nsx'],
     ['logs','management'],['networks','vcenter'],['networks','nsx'],
     ['management','sddc'],['management','vcenter'],['management','nsx'],
+    ['installer','sddc'],['installer','vcenter'],['installer','nsx'],['installer','esx'],
     ['sddc','vcenter'],['sddc','nsx'],['vcenter','esx'],['vcenter','nsx'],['vcenter','vsan'],['vcenter','supervisor'],
     ['nsx','esx'],['nsx','supervisor'],['esx','vsan'],['esx','supervisor'],
     ['esx','depot'],['management','depot'],['depot','infrastructure'],
@@ -230,7 +231,7 @@ function renderTopology(baseRows) {
     const path=horizontal ? `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}` : `M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`;
     const markers = `${link.directions.has(`${link.destination}>${link.source}`) ? ' marker-start="url(#path-arrow)"' : ''}${link.directions.has(`${link.source}>${link.destination}`) ? ' marker-end="url(#path-arrow)"' : ''}`;
     const ports=[...link.ports].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
-    const label=exact ? `${ports.slice(0,3).map(port=>port.replace(' / ','/')).join(' · ')}${ports.length>3?` · +${ports.length-3}`:''}` : incident ? `${ports.length} port / protocol ${ports.length===1?'label':'labels'}` : '';
+    const label=exact ? `${ports.slice(0,3).map(port=>port.replace(' / ','/')).join(' · ')}${ports.length>3?` · +${ports.length-3}`:''}` : incident && connected.size<=9 ? `${ports.length} port / protocol ${ports.length===1?'label':'labels'}` : '';
     if (label) edgeLabels.push(`<text class="edge-label" x="${mx}" y="${my-8}">${escape(label)}</text>`);
     return `<g class="edge ${exact||incident?'highlighted':'backbone'}" data-source="${link.source}" data-destination="${link.destination}" tabindex="0" role="button" aria-label="Communication path ${escape(a.name)} and ${escape(b.name)}: ${link.count} entries, ${ports.length} port and protocol labels"><title>${escape(`${a.name} ↔ ${b.name}: ${ports.join(', ')}`)}</title><path class="link-hit" d="${path}"/><path class="link" d="${path}"${markers}/></g>`;
   }).join('');

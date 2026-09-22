@@ -46,6 +46,12 @@ try:
         assert page.locator('.filter-chip').count()==1
         page.locator('.filter-chip').click()
         assert page.locator('.filter-chip').is_hidden()
+        page.goto(base+'?components=installer',wait_until='networkidle')
+        assert page.locator('.node.selected').get_attribute('data-component')=='installer'
+        assert 'VCF Installer selected' in page.locator('#component-selection').inner_text()
+        assert page.locator('.edge.highlighted').count()>=10
+        page.locator('#diagram-view').scroll_into_view_if_needed()
+        page.screenshot(path=str(shots/'installer-paths.png'))
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
@@ -136,7 +142,7 @@ try:
             page.locator('#'+('path-ports' if view=='diagram' else view+'-view')).scroll_into_view_if_needed()
             page.screenshot(path=str(shots/f'{view}-mobile.png'))
         assert not errors,errors
-        print('PASS: direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
+        print('PASS: Installer paths, direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
 finally:
     server.shutdown()
     server.server_close()

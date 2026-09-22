@@ -30,7 +30,8 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'Offline Depot ':'infrastructure',
     'License Hub Node IP Pool':'licensing',
     'License Server Management IP address':'licensing',
-    'VCF Installer Management IP address':'management',
+    'VCF Installer Management IP address':'installer',
+    'VCF Installer (internal/loopback)':'installer',
     'DNS Resolvers':'infrastructure'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
@@ -87,4 +88,13 @@ test('links aggregate unordered pairs while preserving unique port labels', () =
   const links=topologyLinks(rows);
   assert.equal(links.length,1); assert.equal(links[0].count,2); assert.equal(links[0].ports.size,2); assert.equal(links[0].directions.size,2);
   assert.deepEqual(uniquePorts(rows),['443 / TCP','902 / TCP']);
+});
+test('VCF Installer has its own source-backed deployment paths', () => {
+  const installerRows=data.rows.filter(row => /VCF Installer/i.test(row.source) || /VCF Installer/i.test(row.destination));
+  assert.equal(installerRows.length,42);
+  const links=topologyLinks(installerRows);
+  const destinations=new Set(links.flatMap(link => [link.source,link.destination]).filter(id => id !== 'installer'));
+  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','identity','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
+    assert.ok(destinations.has(id), `missing Installer path to ${id}`);
+  assert.ok(links.every(link => link.source === 'installer' || link.destination === 'installer'));
 });
