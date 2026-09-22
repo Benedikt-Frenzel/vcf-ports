@@ -103,7 +103,10 @@
       <div class="card diagram-card">
         <div class="card-header">
           <div><h2 class="card-title">VCF infrastructure communication paths</h2><p class="card-subtitle">Select a box to draw its direct paths, then select a connected box or line to isolate it.</p></div>
-          <button id="clear-components" class="btn btn-sm btn-link" type="button" disabled>Clear selection</button>
+          <div class="diagram-header-actions">
+            <button id="export-diagram" class="btn btn-sm btn-outline" type="button" title="Download the selected component paths as a scalable graphic" disabled>Export SVG ↓</button>
+            <button id="clear-components" class="btn btn-sm btn-link" type="button" disabled>Clear selection</button>
+          </div>
         </div>
         <div id="component-selection" class="selection-summary" role="status">No component selected — showing the core infrastructure backbone available under the current filters.</div>
         <div class="diagram-legend" aria-label="Diagram legend"><span><i class="legend-box"></i> Component</span><span><i class="legend-path"></i> Communication path</span><span>Click a box or path to filter</span></div>

@@ -3,7 +3,7 @@
   "articleId": "327186",
   "title": "Public URL list for VCF Products",
   "source": "https://knowledge.broadcom.com/external/article/327186",
-  "retrievedAt": "2026-09-15T14:51:54Z",
+  "retrievedAt": "2026-09-21T11:37:17Z",
   "appliesTo": "For VCF and vSphere Foundation 9.1",
   "note": "Vendored reference for the public URLs required for online functionality. The article is the authoritative list and can change; refresh it with scripts/update_kb_urls.py or manually.",
   "entries": [

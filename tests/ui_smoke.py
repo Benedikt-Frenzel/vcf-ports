@@ -55,6 +55,15 @@ try:
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
+        with page.expect_download() as download:
+            page.locator('#export-diagram').click()
+        diagram_path=download.value.path()
+        diagram=open(diagram_path,encoding='utf-8').read()
+        assert download.value.suggested_filename=='vcf-9.1-vcenter-paths.svg'
+        assert diagram.startswith('<?xml version="1.0" encoding="UTF-8"?>')
+        assert '<title>VCF 9.1 communication paths: vCenter</title>' in diagram
+        assert 'width="1500"' in diagram and 'height="925"' in diagram
+        assert 'class="node selected"' in diagram
         page.locator('#path-ports').scroll_into_view_if_needed()
         page.screenshot(path=str(shots/'paths.png'))
         page.locator('#toggle-paths').click()
@@ -143,6 +152,7 @@ try:
             page.screenshot(path=str(shots/f'{view}-mobile.png'))
         assert not errors,errors
         print('PASS: Installer paths, direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
+        print('PASS: diagram export, direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
 finally:
     server.shutdown()
     server.server_close()
