@@ -98,7 +98,7 @@ The environment mapping is processed entirely in the browser: the installer JSON
 - `data/kb327186-urls.json`: vendored public URL reference from Broadcom KB 327186 (`mise run refresh-kb-urls`).
 - `vendor/`: locally hosted CDS design tokens, Clarity CSS, and upstream licenses.
 - `scripts/`: snapshot refresh, KB reference refresh, and static build.
-- `tests/`: dependency-free Node tests and an optional Camoufox UI smoke test.
+- `tests/`: Node unit tests, axe-core a11y shell checks, and an optional Camoufox UI smoke test.
 - `mise.toml`: development tools and tasks.
 
 ## Third-party notices
@@ -107,6 +107,6 @@ Clarity CSS is vendored unmodified from `https://unpkg.com/@clr/ui@17.9.0/clr-ui
 
 ## Verification
 
-`mise run build` runs the automated data/logic tests and syntax checks. For the optional browser smoke test, build first, then run `python tests/ui_smoke.py` using a Python environment with Camoufox and its browser installed. It serves `dist/` on an ephemeral localhost port, checks port-group expansion, list sorting/paging/details, matrix drilldown, URL restoration, empty states, and mobile overflow, and saves screenshots to a temporary directory. It uses a fresh browser context, not a personal profile. Camoufox is not required by the site or the normal build.
+`mise run build` installs Node test deps (`npm ci`), then runs the automated data/logic/a11y tests and syntax checks. For the optional browser smoke test, build first, then run `python tests/ui_smoke.py` using a Python environment with Camoufox and its browser installed. It serves `dist/` on an ephemeral localhost port, checks port-group expansion, list sorting/paging/details, matrix drilldown, URL restoration, empty states, and mobile overflow, and saves screenshots to a temporary directory. It uses a fresh browser context, not a personal profile. Camoufox is not required by the site or the normal build.
 
-Desktop and mobile screenshots have been reviewed with Camoufox; this is not a comprehensive accessibility audit.
+`tests/a11y.test.js` covers the static page shell with axe-core (WCAG 2 A/AA; color-contrast disabled under jsdom) plus skip-link, landmark, nav, and theme-switcher checks. Dynamic explorer widgets remain covered by the Camoufox smoke test rather than a full accessibility audit.
