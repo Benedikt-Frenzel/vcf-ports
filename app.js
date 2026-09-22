@@ -101,7 +101,7 @@ function downloadFile(content, filename, type) {
   link.href = url; link.download = filename; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function downloadTopologySvg() {
+function buildExportSvg() {
   const source = $('topology');
   const clone = source.cloneNode(true);
   const namespace = 'http://www.w3.org/2000/svg';
@@ -161,12 +161,13 @@ function downloadTopologySvg() {
     }
     return {sourceId,destinationId,rows,lines};
   });
+  const width = 1500;
   const exportHeight = 1110 + directionGroups.reduce((height,group) => height + 43 + group.lines.length * 22, 0);
-  clone.setAttribute('viewBox', `0 0 1500 ${exportHeight}`);
-  clone.setAttribute('width', '1500');
+  clone.setAttribute('viewBox', `0 0 ${width} ${exportHeight}`);
+  clone.setAttribute('width', String(width));
   clone.setAttribute('height', String(exportHeight));
   const background = svgElement('rect');
-  background.setAttribute('width', '1500');
+  background.setAttribute('width', String(width));
   background.setAttribute('height', String(exportHeight));
   background.setAttribute('fill', '#eef3f6');
   const details = svgElement('g');
@@ -204,8 +205,37 @@ function downloadTopologySvg() {
   clone.prepend(background);
   clone.prepend(description);
   clone.prepend(title);
+  const basename = `vcf-9.1-${selectedComponents.join('-')}-paths`;
   const content = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
-  downloadFile(content, `vcf-9.1-${selectedComponents.join('-')}-paths.svg`, 'image/svg+xml;charset=utf-8');
+  return {content, width, height: exportHeight, basename};
+}
+function downloadTopologySvg() {
+  const {content, basename} = buildExportSvg();
+  downloadFile(content, `${basename}.svg`, 'image/svg+xml;charset=utf-8');
+}
+async function downloadTopologyPng() {
+  const {content, width, height, basename} = buildExportSvg();
+  const svgUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(content)}`;
+  await document.fonts.ready;
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('PNG export failed to load the diagram SVG'));
+    img.src = svgUrl;
+  });
+  const scale = Math.min(2, Math.max(1, Math.floor(8192 / Math.max(width, height))));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const context = canvas.getContext('2d');
+  context.setTransform(scale, 0, 0, scale, 0, 0);
+  context.fillStyle = '#eef3f6';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+  const png = await new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('PNG export failed to encode the canvas')), 'image/png');
+  });
+  downloadFile(png, `${basename}.png`, 'image/png');
 }
 function render() {
   const baseRows = filterRows(data.rows, filters());
@@ -365,6 +395,7 @@ function renderTopology(baseRows) {
   }));
   $('clear-components').disabled = selectedComponents.length === 0;
   $('export-diagram').disabled = selectedComponents.length === 0;
+  $('export-diagram-png').disabled = selectedComponents.length === 0;
   $('show-connections').disabled = selectedComponents.length === 0 || filtered.length === 0;
   $('component-selection').textContent = selectedComponents.length === 0
     ? 'No component selected — showing the core infrastructure backbone. Select any component to draw every matching direct path.'
@@ -444,6 +475,7 @@ async function init() {
     $('reset').addEventListener('click',()=>{fields.forEach(k=>$(k).value='');selectedComponents=[];releaseOptions();page=sourcePage=destPage=0;render();});
     $('clear-components').addEventListener('click',()=>{selectedComponents=[];page=sourcePage=destPage=0;render();});
     $('export-diagram').addEventListener('click',downloadTopologySvg);
+    $('export-diagram-png').addEventListener('click',()=>{downloadTopologyPng().catch(error => console.error(error));});
     $('show-connections').addEventListener('click',()=>{view='list';page=0;render();$('list-tab').focus();});
     for (const v of ['diagram','list','matrix']) $(`${v}-tab`).addEventListener('click',()=>{view=v;render();});
     $('matrix-order').addEventListener('change',()=>{sourcePage=destPage=0;renderMatrix();});

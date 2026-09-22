@@ -72,6 +72,13 @@ try:
         assert 'vc-mgmt-01.vcf.lab' in diagram
         assert 'Selected path ports and directions' in diagram
         assert '443 / TCP' in diagram and '→' in diagram
+        with page.expect_download() as download:
+            page.locator('#export-diagram-png').click()
+        png_path=download.value.path()
+        assert download.value.suggested_filename=='vcf-9.1-vcenter-paths.png'
+        png=open(png_path,'rb').read()
+        assert png.startswith(b'\x89PNG\r\n\x1a\n')
+        assert len(png)>10_000
         page.evaluate("localStorage.removeItem('vcf-ports.environment-mapping')")
         page.reload(wait_until='networkidle')
         page.locator('#path-ports').scroll_into_view_if_needed()
