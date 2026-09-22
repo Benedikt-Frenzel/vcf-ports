@@ -341,7 +341,9 @@ body .data-heading p:not([cds-text]){margin:5px 0 0;font-size:13px;line-height:1
 .env-import textarea:focus-visible{outline:2px solid var(--vp-primary);outline-offset:1px}
 .env-actions{display:flex;align-items:center;gap:14px;margin:12px 0 4px;flex-wrap:wrap}
 .env-status{font-size:12px;color:var(--vp-muted)}
-.env-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px;margin-top:16px}
+.env-grid{display:grid;gap:20px;margin-top:16px}
+.env-section>h3{margin:0 0 10px;font-size:12px;font-weight:600;color:var(--vp-ink)}
+.env-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px}
 .env-field{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11.5px;font-weight:600;color:var(--vp-muted)}
 .env-field input{width:100%;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--vp-ink);background:var(--vp-surface);border:1px solid var(--vp-border);border-radius:6px;padding:7px 9px}
 .env-field input:focus-visible{outline:2px solid var(--vp-primary);outline-offset:1px}
@@ -394,7 +396,7 @@ summary{cursor:pointer;color:var(--vp-primary);padding:10px 0;font-weight:600;fo
   .brand-text .title-sub{display:none}
   .direction-group>summary{grid-template-columns:1fr}
   .domain-row{grid-template-columns:1fr;gap:4px}
-  .env-grid{grid-template-columns:1fr}
+  .env-fields{grid-template-columns:1fr}
   .domain-records{text-align:left}
   .protocol-row{grid-template-columns:70px minmax(0,1fr);gap:8px}
   .rows-control{margin-left:0}

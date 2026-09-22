@@ -1,12 +1,12 @@
 import { filterRows, toCSV, toFirewallCSV, toFirewallMarkdown, parseInstallerConfig, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
-import { COMPONENTS, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from './topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
 const fields = ['search','product','release','protocol','classification','source','destination'];
 let data, filtered = [], page = 0, sourcePage = 0, destPage = 0, view = 'diagram', selectedComponents = [];
 const MAPPING_KEY = 'vcf-ports.environment-mapping';
-const componentNames = Object.fromEntries(COMPONENTS.map(component => [component.id, component.name]));
+const componentNames = Object.fromEntries([...COMPONENTS,...ENVIRONMENT_SERVICES].map(component => [component.id, component.name]));
 let environmentMapping = {};
 try { environmentMapping = JSON.parse(localStorage.getItem(MAPPING_KEY) || '{}'); } catch { environmentMapping = {}; }
 const componentById = new Map(COMPONENTS.map(component => [component.id, component]));
@@ -79,17 +79,20 @@ function persistMapping() {
 }
 function renderEnvironmentMapping() {
   const grid = $('env-grid');
-  grid.innerHTML = COMPONENTS.map(component => `
-    <label class="env-field"><span class="env-name">${escape(component.name)}</span>
-      <input type="text" data-component="${component.id}" value="${escape(environmentMapping[component.id] || '')}" placeholder="IPs, CIDRs, FQDNs" spellcheck="false"></label>`).join('');
+  const fields = items => items.map(component => `
+      <label class="env-field"><span class="env-name">${escape(component.id==='infrastructure'?'Other infrastructure / external services':component.name)}</span>
+        <input type="text" data-component="${component.id}" value="${escape(environmentMapping[component.id] || '')}" placeholder="IPs, CIDRs, FQDNs" spellcheck="false"></label>`).join('');
+  grid.innerHTML = `<section class="env-section"><h3>VCF components</h3><div class="env-fields">${fields(COMPONENTS)}</div></section>
+    <section class="env-section"><h3>External services</h3><div class="env-fields">${fields(ENVIRONMENT_SERVICES)}</div></section>`;
+  const fieldCount = COMPONENTS.length + ENVIRONMENT_SERVICES.length;
   const mapped = Object.values(environmentMapping).filter(Boolean).length;
-  $('env-status').textContent = mapped ? `${mapped} of ${COMPONENTS.length} components mapped` : '';
+  $('env-status').textContent = mapped ? `${mapped} of ${fieldCount} environment objects mapped` : '';
   grid.querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
     const value = input.value.trim();
     if (value) environmentMapping[input.dataset.component] = value;
     else delete environmentMapping[input.dataset.component];
     persistMapping();
-    $('env-status').textContent = `${Object.values(environmentMapping).filter(Boolean).length} of ${COMPONENTS.length} components mapped`;
+    $('env-status').textContent = `${Object.values(environmentMapping).filter(Boolean).length} of ${fieldCount} environment objects mapped`;
   }));
 }
 function downloadFile(content, filename, type) {

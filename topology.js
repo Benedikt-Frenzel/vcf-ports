@@ -24,6 +24,19 @@ export const COMPONENTS = [
   {id:'clients', name:'Clients & Administrators', zone:'External systems', x:350, y:829, w:330},
   {id:'infrastructure', name:'Infrastructure & External Services', zone:'External systems', x:820, y:829, w:330}
 ];
+export const ENVIRONMENT_SERVICES = [
+  {id:'external-dns', name:'DNS Servers', pattern:/\bDNS (?:Resolvers|server)\b/i},
+  {id:'external-ntp', name:'NTP / Time Servers', pattern:/\bNTP Servers?\b|\bNTS\b|Precision Time Protocol/i},
+  {id:'external-dhcp', name:'DHCP Servers', pattern:/\bDHCP(?:v[46])? Server\b/i},
+  {id:'external-directory', name:'Directory / Identity Services', pattern:/Active Directory|User Identity Provider|LDAP \(server\)|TACACS\+ Server/i},
+  {id:'external-syslog', name:'Syslog Servers', pattern:/\bSyslog\b/i},
+  {id:'external-mail', name:'Email Servers', pattern:/\bEmail Server\b/i},
+  {id:'external-snmp', name:'SNMP Management', pattern:/\bSNMP Management System\b/i},
+  {id:'external-storage', name:'External Storage / Backup', pattern:/NFS [Ss]torage|iSCSI Storage|S3-compatible [Ss]torage|Scale-out Cloud File System|Backup Servers|SFTP backup server/i}
+];
+export function environmentKeyForEndpoint(endpoint, componentId = componentForEndpoint(endpoint)) {
+  return ENVIRONMENT_SERVICES.find(service => service.pattern.test(String(endpoint || '')))?.id || componentId;
+}
 const rules = [
   ['networks', /operations for networks|\bvrni\b|network insight/i],
   ['logs', /operations for logs|log insight|log assist|log source|clickhouse|cplf/i],
@@ -100,7 +113,9 @@ export function uniquePorts(rows) {
 export function firewallRules(rows) {
   const groups = new Map();
   for (const row of rows) {
-    const [source, destination] = topologyPath(row);
+    const [sourceComponent, destinationComponent] = topologyPath(row);
+    const source = environmentKeyForEndpoint(row.source, sourceComponent);
+    const destination = environmentKeyForEndpoint(row.destination, destinationComponent);
     if (source === destination) continue;
     const key = `${source}|${destination}|${row.port || 'Not specified'}|${row.protocol || 'Not specified'}`;
     const rule = groups.get(key) || {source, destination, port: row.port || 'Not specified', protocol: row.protocol || 'Not specified', records: 0, purposes: new Set(), classifications: new Set()};

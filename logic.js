@@ -105,7 +105,8 @@ export function parseInstallerConfig(text) {
   add('identity', config.vidbSpec?.hostname);
   add('vcenter', config.vcenterSpec?.vcenterHostname);
   add('sddc', config.sddcManagerSpec?.hostname);
-  add('infrastructure', ...(config.dnsSpec?.nameservers || []), ...(config.ntpServers || []));
+  add('external-dns', ...(config.dnsSpec?.nameservers || []));
+  add('external-ntp', ...(config.ntpServers || []));
   const mapping = {};
   for (const [component, values] of collected) mapping[component] = [...new Set(values)].join(', ');
   return mapping;

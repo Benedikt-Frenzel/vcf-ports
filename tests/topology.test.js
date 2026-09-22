@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { COMPONENTS, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, componentForEndpoint, environmentKeyForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('known latency-diagram endpoint labels map to logical components', () => {
@@ -75,9 +75,19 @@ test('firewall rules aggregate per direction, port, and protocol', () => {
   assert.deepEqual([...rules[0].purposes], ['management']);
   const snapshotRules = firewallRules(data.rows);
   const total = snapshotRules.reduce((sum, rule) => sum + rule.records, 0);
-  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return s === d; }).length;
+  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return environmentKeyForEndpoint(row.source,s) === environmentKeyForEndpoint(row.destination,d); }).length;
   assert.equal(total, drawn);
-  assert.ok(snapshotRules.every(rule => COMPONENTS.some(c => c.id === rule.source)));
+  const environmentIds=new Set([...COMPONENTS,...ENVIRONMENT_SERVICES].map(item => item.id));
+  assert.ok(snapshotRules.every(rule => environmentIds.has(rule.source) && environmentIds.has(rule.destination)));
+});
+test('firewall rules keep external infrastructure services separate', () => {
+  const rules=firewallRules([
+    {source:'vCenter Server Management IP address',destination:'DNS Resolvers',port:'53',protocol:'UDP',purpose:'DNS',classification:'Outbound'},
+    {source:'vCenter Server Management IP address',destination:'NTP Server',port:'123',protocol:'UDP',purpose:'NTP',classification:'Outbound'},
+    {source:'VCF Identity Broker',destination:'Microsoft Active Directory Domain Controllers',port:'636',protocol:'TCP',purpose:'LDAPS',classification:'Outbound'}
+  ]);
+  assert.deepEqual(rules.map(rule => rule.destination),['external-directory','external-dns','external-ntp']);
+  assert.deepEqual(rules.map(rule => rule.port),['636','53','123']);
 });
 test('links aggregate unordered pairs while preserving unique port labels', () => {
   const rows=[

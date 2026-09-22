@@ -95,12 +95,14 @@ try:
         page.locator('#reset').click()
         # Environment mapping: import installer JSON, persist, firewall exports.
         page.locator('.env-details summary').click()
-        installer='{"hostSpecs":[{"hostname":"esx01.vcf.lab","credentials":{"password":"TopSecret-123"}},{"hostname":"esx02.vcf.lab"}],"vcenterSpec":{"vcenterHostname":"vc01.vcf.lab"},"licenseServerSpec":{"hostname":"vcf-lic01.vcf.lab"},"dnsSpec":{"nameservers":["192.168.30.29"]}}'
+        installer='{"hostSpecs":[{"hostname":"esx01.vcf.lab","credentials":{"password":"TopSecret-123"}},{"hostname":"esx02.vcf.lab"}],"vcenterSpec":{"vcenterHostname":"vc01.vcf.lab"},"licenseServerSpec":{"hostname":"vcf-lic01.vcf.lab"},"dnsSpec":{"nameservers":["192.168.30.29"]},"ntpServers":["192.168.30.30"]}'
         page.locator('#env-json').fill(installer)
         page.locator('#env-import').click()
-        assert 'Imported 4 components' in page.locator('#env-status').inner_text()
+        assert 'Imported 5 components' in page.locator('#env-status').inner_text()
         vcenter_value=page.locator('.env-field input[data-component="vcenter"]').input_value()
         assert vcenter_value=='vc01.vcf.lab', vcenter_value
+        assert page.locator('.env-field input[data-component="external-dns"]').input_value()=='192.168.30.29'
+        assert page.locator('.env-field input[data-component="external-ntp"]').input_value()=='192.168.30.30'
         page.reload(wait_until='networkidle')
         assert page.locator('.env-field input[data-component="vcenter"]').input_value()=='vc01.vcf.lab'
         with page.expect_download() as download:
@@ -110,15 +112,19 @@ try:
         assert content.startswith('"Source address"')
         assert 'vc01.vcf.lab' in content and '<NSX IPs / FQDNs>' in content
         assert 'esx01.vcf.lab, esx02.vcf.lab' in content
+        assert '"192.168.30.29","53","UDP"' in content
+        assert '"192.168.30.30","123","UDP"' in content
         with page.expect_download() as download:
             page.locator('#export-firewall-md').click()
         md=open(download.value.path(),encoding='utf-8').read()
         assert md.startswith('# VCF 9.1 firewall request')
         assert '| vc01.vcf.lab |' in md
+        assert '192.168.30.29' in md and '192.168.30.30' in md
         assert 'TopSecret' not in content and 'TopSecret' not in md
         page.locator('.env-details summary').click()
         page.locator('#env-clear').click()
         assert page.locator('.env-field input[data-component="vcenter"]').input_value()==''
+        assert page.locator('.env-field input[data-component="external-dns"]').input_value()==''
         groups=page.locator('.domain-group>h3').all_inner_texts()
         assert any('Broadcom domains' in g for g in groups) and any('Third-party' in g for g in groups), groups
         assert page.locator('.domain-row').count()>0
