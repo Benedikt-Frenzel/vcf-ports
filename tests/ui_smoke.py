@@ -49,6 +49,8 @@ try:
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
+        page.evaluate("localStorage.setItem('vcf-ports.environment-mapping',JSON.stringify({vcenter:'vc-mgmt-01.vcf.lab'}))")
+        page.reload(wait_until='networkidle')
         with page.expect_download() as download:
             page.locator('#export-diagram').click()
         diagram_path=download.value.path()
@@ -56,8 +58,13 @@ try:
         assert download.value.suggested_filename=='vcf-9.1-vcenter-paths.svg'
         assert diagram.startswith('<?xml version="1.0" encoding="UTF-8"?>')
         assert '<title>VCF 9.1 communication paths: vCenter</title>' in diagram
-        assert 'width="1500"' in diagram and 'height="925"' in diagram
+        assert 'width="1500"' in diagram and 'height="925"' not in diagram
         assert 'class="node selected"' in diagram
+        assert 'vc-mgmt-01.vcf.lab' in diagram
+        assert 'Selected path ports and directions' in diagram
+        assert '443 / TCP' in diagram and '→' in diagram
+        page.evaluate("localStorage.removeItem('vcf-ports.environment-mapping')")
+        page.reload(wait_until='networkidle')
         page.locator('#path-ports').scroll_into_view_if_needed()
         page.screenshot(path=str(shots/'paths.png'))
         page.locator('#toggle-paths').click()
@@ -145,7 +152,7 @@ try:
             page.locator('#'+('path-ports' if view=='diagram' else view+'-view')).scroll_into_view_if_needed()
             page.screenshot(path=str(shots/f'{view}-mobile.png'))
         assert not errors,errors
-        print('PASS: diagram export, direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
+        print('PASS: complete mapped diagram export, direction toggles, list sorting/paging/details, matrix drilldown, URL restore, empty state, mobile overflow.')
 finally:
     server.shutdown()
     server.server_close()

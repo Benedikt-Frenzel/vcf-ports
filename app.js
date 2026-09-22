@@ -102,6 +102,7 @@ function downloadTopologySvg() {
   const source = $('topology');
   const clone = source.cloneNode(true);
   const namespace = 'http://www.w3.org/2000/svg';
+  const svgElement = name => document.createElementNS(namespace, name);
   const properties = ['fill','stroke','stroke-width','stroke-dasharray','opacity','font-family','font-size','font-weight','letter-spacing','text-anchor','paint-order','stroke-linejoin'];
   const sourceElements = [source, ...source.querySelectorAll('*')];
   const cloneElements = [clone, ...clone.querySelectorAll('*')];
@@ -110,19 +111,92 @@ function downloadTopologySvg() {
     cloneElements[index].setAttribute('style', properties.map(property => `${property}:${computed.getPropertyValue(property)}`).join(';'));
   });
   clone.setAttribute('xmlns', namespace);
-  clone.setAttribute('width', '1500');
-  clone.setAttribute('height', '925');
   clone.removeAttribute('id');
   clone.querySelectorAll('[tabindex]').forEach(element => element.removeAttribute('tabindex'));
   clone.querySelectorAll('.node rect').forEach(rect => rect.setAttribute('filter', 'url(#box-shadow)'));
-  const background = document.createElementNS(namespace, 'rect');
+  clone.querySelectorAll('.node').forEach(node => {
+    const component = componentById.get(node.dataset.component);
+    const mapped = environmentMapping[component.id];
+    if (!mapped) return;
+    const text = node.querySelector('text');
+    const name = svgElement('tspan');
+    name.setAttribute('x', component.x + component.w / 2);
+    name.setAttribute('y', component.y + 23);
+    name.textContent = component.name;
+    if (component.name.length > component.w / 7) {
+      name.setAttribute('textLength', component.w - 18);
+      name.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    }
+    const address = svgElement('tspan');
+    address.setAttribute('x', component.x + component.w / 2);
+    address.setAttribute('y', component.y + 45);
+    address.setAttribute('style', 'font-size:10px;font-weight:400');
+    address.textContent = mapped;
+    if (mapped.length > component.w / 6) {
+      address.setAttribute('textLength', component.w - 18);
+      address.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+    }
+    text.replaceChildren(name,address);
+    const mappedTitle = svgElement('title');
+    mappedTitle.textContent = `${component.name}: ${mapped}`;
+    node.prepend(mappedTitle);
+  });
+  const directions = new Map();
+  for (const row of filtered) {
+    const [sourceId,destinationId] = topologyPath(row);
+    const key = `${sourceId}|${destinationId}`;
+    if (!directions.has(key)) directions.set(key,[]);
+    directions.get(key).push(row);
+  }
+  const directionGroups = [...directions.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows]) => {
+    const [sourceId,destinationId] = key.split('|');
+    const lines = [];
+    for (const port of uniquePorts(rows)) {
+      const current = lines.at(-1);
+      if (!current || `${current} · ${port}`.length > 155) lines.push(port);
+      else lines[lines.length-1] += ` · ${port}`;
+    }
+    return {sourceId,destinationId,rows,lines};
+  });
+  const exportHeight = 1110 + directionGroups.reduce((height,group) => height + 43 + group.lines.length * 22, 0);
+  clone.setAttribute('viewBox', `0 0 1500 ${exportHeight}`);
+  clone.setAttribute('width', '1500');
+  clone.setAttribute('height', String(exportHeight));
+  const background = svgElement('rect');
   background.setAttribute('width', '1500');
-  background.setAttribute('height', '925');
+  background.setAttribute('height', String(exportHeight));
   background.setAttribute('fill', '#eef3f6');
-  const title = document.createElementNS(namespace, 'title');
+  const details = svgElement('g');
+  const panel = svgElement('rect');
+  panel.setAttribute('x', '25'); panel.setAttribute('y', '945'); panel.setAttribute('width', '1450'); panel.setAttribute('height', String(exportHeight - 970)); panel.setAttribute('rx', '14');
+  panel.setAttribute('style', 'fill:#fff;stroke:#9db1bd;stroke-width:1.4');
+  details.append(panel);
+  const addText = (value,x,y,style) => {
+    const text = svgElement('text');
+    text.setAttribute('x', String(x)); text.setAttribute('y', String(y)); text.setAttribute('style', `font-family:"Metropolis",Arial,sans-serif;fill:#12252f;${style}`);
+    text.textContent = value; details.append(text);
+  };
+  addText('Selected path ports and directions', 55, 985, 'font-size:22px;font-weight:700');
+  addText(`${directionGroups.length} directions · ${filtered.length} published entries · ${uniquePorts(filtered).length} unique port / protocol labels`, 55, 1015, 'font-size:13px;fill:#5a6b76');
+  let y = 1060;
+  for (const group of directionGroups) {
+    addText(`${componentById.get(group.sourceId).name} → ${componentById.get(group.destinationId).name}`, 55, y, 'font-size:15px;font-weight:600');
+    addText(`${group.rows.length} ${group.rows.length===1?'entry':'entries'}`, 1445, y, 'font-size:12px;fill:#5a6b76;text-anchor:end');
+    y += 24;
+    for (const line of group.lines) {
+      addText(line, 55, y, 'font-family:ui-monospace,monospace;font-size:13px;fill:#334e5c');
+      y += 22;
+    }
+    const separator = svgElement('line');
+    separator.setAttribute('x1', '55'); separator.setAttribute('x2', '1445'); separator.setAttribute('y1', String(y)); separator.setAttribute('y2', String(y)); separator.setAttribute('style', 'stroke:#e4e9ec;stroke-width:1');
+    details.append(separator);
+    y += 19;
+  }
+  clone.append(details);
+  const title = svgElement('title');
   const names = selectedComponents.map(id => componentById.get(id).name);
   title.textContent = `VCF 9.1 communication paths: ${names.join(' and ')}`;
-  const description = document.createElementNS(namespace, 'desc');
+  const description = svgElement('desc');
   description.textContent = `${filtered.length} published entries match the selected components and current filters. Exported from VCF Ports.`;
   clone.prepend(background);
   clone.prepend(description);
