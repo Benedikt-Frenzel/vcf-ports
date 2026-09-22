@@ -180,6 +180,8 @@ main{max-width:1560px;padding:28px 32px 56px;margin:auto}
 
 /* ---------- Diagram ---------- */
 .diagram-card{margin-bottom:18px}
+.diagram-header-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.diagram-header-actions .btn{margin:0}
 .selection-summary{
   padding:11px 22px;background:var(--vp-warm-soft);border-left:4px solid var(--vp-warm);
   font-size:13px;color:var(--vp-warm-strong);font-weight:500;
@@ -406,6 +408,7 @@ summary{cursor:pointer;color:var(--vp-primary);padding:10px 0;font-weight:600;fo
   .stats{grid-template-columns:repeat(2,1fr);gap:10px}
   .stat{padding:16px 18px}
   .card-header{flex-direction:column}
+  .diagram-header-actions{width:100%}
   .diagram-actions{display:block}
   .diagram-actions .btn{margin-top:12px}
   .topology{min-width:900px}

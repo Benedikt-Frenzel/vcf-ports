@@ -48,6 +48,7 @@ The PR creation step uses `secrets.PR_TOKEN` if defined, otherwise falls back to
 - Prominent, sticky segmented view tabs (path diagram, connection list, endpoint matrix) with result count and CSV export always in view.
 - Interactive infrastructure diagram inspired by the official VCF 9.1 Fleet Latency diagram, with nested Fleet Services (including VCF Operations HCX), Management Domain (VCF Management Services, SDDC Manager, vCenter, Software Depot, Identity Broker, License Hub/Server), Workload Infrastructure, Advanced Services, and External Systems boxes. Select a component to draw its direct paths; select a connected box or path to isolate it and label its ports/protocols directly on the link.
 - Compact, expandable port groups by direction and protocol, with exact label counts and an expand/collapse-all control.
+- Self-contained SVG export of the currently selected component paths, including active filters and visual selection state.
 - Sortable connection list with separate endpoint columns, 20/40/80 rows per page, and expandable original service descriptions and source metadata.
 - Source × destination matrix with independently paginated axes, count shading, and activity/alphabetical ordering; select a populated cell to inspect its connections.
 - Filtered CSV export with quoting, UTF-8 BOM, and spreadsheet formula mitigation.
