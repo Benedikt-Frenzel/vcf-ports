@@ -98,6 +98,38 @@ function downloadFile(content, filename, type) {
   link.href = url; link.download = filename; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+function downloadTopologySvg() {
+  const source = $('topology');
+  const clone = source.cloneNode(true);
+  const namespace = 'http://www.w3.org/2000/svg';
+  const properties = ['fill','stroke','stroke-width','stroke-dasharray','opacity','font-family','font-size','font-weight','letter-spacing','text-anchor','paint-order','stroke-linejoin'];
+  const sourceElements = [source, ...source.querySelectorAll('*')];
+  const cloneElements = [clone, ...clone.querySelectorAll('*')];
+  sourceElements.forEach((element,index) => {
+    const computed = getComputedStyle(element);
+    cloneElements[index].setAttribute('style', properties.map(property => `${property}:${computed.getPropertyValue(property)}`).join(';'));
+  });
+  clone.setAttribute('xmlns', namespace);
+  clone.setAttribute('width', '1500');
+  clone.setAttribute('height', '925');
+  clone.removeAttribute('id');
+  clone.querySelectorAll('[tabindex]').forEach(element => element.removeAttribute('tabindex'));
+  clone.querySelectorAll('.node rect').forEach(rect => rect.setAttribute('filter', 'url(#box-shadow)'));
+  const background = document.createElementNS(namespace, 'rect');
+  background.setAttribute('width', '1500');
+  background.setAttribute('height', '925');
+  background.setAttribute('fill', '#eef3f6');
+  const title = document.createElementNS(namespace, 'title');
+  const names = selectedComponents.map(id => componentById.get(id).name);
+  title.textContent = `VCF 9.1 communication paths: ${names.join(' and ')}`;
+  const description = document.createElementNS(namespace, 'desc');
+  description.textContent = `${filtered.length} published entries match the selected components and current filters. Exported from VCF Ports.`;
+  clone.prepend(background);
+  clone.prepend(description);
+  clone.prepend(title);
+  const content = `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
+  downloadFile(content, `vcf-9.1-${selectedComponents.join('-')}-paths.svg`, 'image/svg+xml;charset=utf-8');
+}
 function render() {
   const baseRows = filterRows(data.rows, filters());
   filtered = filterByComponents(baseRows, selectedComponents);
@@ -254,6 +286,7 @@ function renderTopology(baseRows) {
     selectedComponents=[edge.dataset.source,edge.dataset.destination]; page=sourcePage=destPage=0; render();
   }));
   $('clear-components').disabled = selectedComponents.length === 0;
+  $('export-diagram').disabled = selectedComponents.length === 0;
   $('show-connections').disabled = selectedComponents.length === 0 || filtered.length === 0;
   $('component-selection').textContent = selectedComponents.length === 0
     ? 'No component selected — showing the core infrastructure backbone. Select any component to draw every matching direct path.'
@@ -332,6 +365,7 @@ async function init() {
     });
     $('reset').addEventListener('click',()=>{fields.forEach(k=>$(k).value='');selectedComponents=[];releaseOptions();page=sourcePage=destPage=0;render();});
     $('clear-components').addEventListener('click',()=>{selectedComponents=[];page=sourcePage=destPage=0;render();});
+    $('export-diagram').addEventListener('click',downloadTopologySvg);
     $('show-connections').addEventListener('click',()=>{view='list';page=0;render();$('list-tab').focus();});
     for (const v of ['diagram','list','matrix']) $(`${v}-tab`).addEventListener('click',()=>{view=v;render();});
     $('matrix-order').addEventListener('change',()=>{sourcePage=destPage=0;renderMatrix();});
