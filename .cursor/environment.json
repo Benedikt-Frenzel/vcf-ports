@@ -1,0 +1,10 @@
+{
+  "name": "VCF Communication Matrix",
+  "install": "set -euo pipefail; curl -fsSL https://mise.run | sh; grep -q 'activate bash' \"$HOME/.bashrc\" || echo 'eval \"$(\"$HOME/.local/bin/mise\" activate bash)\"' >> \"$HOME/.bashrc\"; \"$HOME/.local/bin/mise\" trust; \"$HOME/.local/bin/mise\" install",
+  "terminals": [
+    {
+      "name": "dev-server",
+      "command": "~/.local/bin/mise run dev"
+    }
+  ]
+}
