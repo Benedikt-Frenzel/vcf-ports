@@ -36,7 +36,7 @@ def parse(page: str) -> list[dict]:
     entries = []
     for table in tables:
         for row in re.findall(r'<tr[\s\S]*?</tr>', table)[1:]:
-            cells = [re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', cell))).strip()
+            cells = [re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', cell))).strip()
                      for cell in re.findall(r'<t[dh][\s\S]*?</t[dh]>', row)]
             if len(cells) < 7:
                 continue
@@ -81,7 +81,7 @@ def main() -> int:
         'title': 'Public URL list for VCF Products',
         'source': ARTICLE,
         'retrievedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'appliesTo': 'For VCF and vSphere Foundation 9.1',
+        'appliesTo': 'Legacy public URL table. The VCF 9.1 planning guide is the current list and points here for earlier versions.',
         'note': 'Vendored reference for the public URLs required for online functionality. The article is the authoritative list and can change; refresh it with scripts/update_kb_urls.py or manually.',
         'entries': entries,
     }

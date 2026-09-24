@@ -1,0 +1,696 @@
+{
+  "kind": "vcf-9.1-documented-requirements",
+  "compiledAt": "2026-09-24",
+  "note": "Requirements stated by VCF 9.1 TechDocs and Broadcom knowledge base articles. These rows are not records from ports.broadcom.com. A blank protocol or direction in the source page is stored as \"Not specified\" rather than inferred. Where a page names several sources and destinations for one purpose, each pair is expanded so the diagram can draw it.",
+  "documents": [
+    {
+      "id": "techdocs-public-urls",
+      "shortName": "Public URLs (9.1)",
+      "title": "Public URLs Required for Online Functionalities for VCF and vSphere Foundation",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/planning-and-preparation/public-urls-required-for-vmware-cloud-foundation.html",
+      "updated": "2026-09-23",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "techdocs-license-networking",
+      "shortName": "License server networking",
+      "title": "License Server Networking",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/licensing/license-server-overview/license-server-networking.html",
+      "updated": "2026-09-23",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "techdocs-license-security",
+      "shortName": "License server security",
+      "title": "License Server Security",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/licensing/license-server-overview/license-server-security.html",
+      "updated": "2026-09-23",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "techdocs-hcx-ports",
+      "shortName": "HCX connectivity",
+      "title": "Network Port and Protocol Requirements (VCF Operations HCX)",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/workload-mobility/vmware-hcx-user-guide-vcf-9-0/preparing-for-hcx-installations/network-port-and-protocol-requirements.html",
+      "updated": "2026-07-23",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "techdocs-cloud-proxy",
+      "shortName": "Cloud proxy FAQ",
+      "title": "Cloud Proxy FAQ",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/fleet-management/collecting-data-with-cloud-proxies-in-vrealize-operations-cloud/cloud-proxy-faq.html",
+      "updated": "2026-09-23",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "techdocs-vsan-firewall",
+      "shortName": "vSAN firewall",
+      "title": "Network Firewall Requirements (vSAN)",
+      "url": "https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-1/vsan-deployment-administration-and-monitoring/vsan-network-design/understanding-vsan-networking/network-requirements-for-vsan/network-firewall-requirements.html",
+      "publisher": "Broadcom TechDocs"
+    },
+    {
+      "id": "kb-443166",
+      "shortName": "KB 443166 depot access",
+      "title": "Depot returned authentication/authorization failure (HTTP 403)",
+      "url": "https://knowledge.broadcom.com/external/article/443166",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-443216",
+      "shortName": "KB 443216 depot status",
+      "title": "Disconnected depot: active after registering the Online Depot",
+      "url": "https://knowledge.broadcom.com/external/article/443216",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-442139",
+      "shortName": "KB 442139 identity broker",
+      "title": "VCF SSO login fails after upgrade to VCF 9.1",
+      "url": "https://knowledge.broadcom.com/external/article/442139",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-453395",
+      "shortName": "KB 453395 SFTP backup",
+      "title": "Configuring SFTP Backup Location Fails Without Error Due to Blocked Port 22",
+      "url": "https://knowledge.broadcom.com/external/article/453395",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-448888",
+      "shortName": "KB 448888 bootstrap 443",
+      "title": "VCF Management Services bootstrap fails because port 443 is blocked",
+      "url": "https://knowledge.broadcom.com/external/article/448888",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-440449",
+      "shortName": "KB 440449 bootstrap 5480",
+      "title": "Runtime services bootstrap fails at the NSX firewall exclusion step",
+      "url": "https://knowledge.broadcom.com/external/article/440449",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-452400",
+      "shortName": "KB 452400 connection mode",
+      "title": "VCF Operations 9.1 connection mode fails when a proxy inspects TLS",
+      "url": "https://knowledge.broadcom.com/external/article/452400",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-441891",
+      "shortName": "KB 441891 depot SSL",
+      "title": "VCF 9.1 Online Depot setup fails with VCF_ERROR_INTERNAL_SERVER_ERR",
+      "url": "https://knowledge.broadcom.com/external/article/441891",
+      "publisher": "Broadcom Knowledge Base"
+    },
+    {
+      "id": "kb-453215",
+      "shortName": "KB 453215 depot proxy",
+      "title": "Proxy Configuration for VCF Management Services and Depot Connectivity",
+      "url": "https://knowledge.broadcom.com/external/article/453215",
+      "publisher": "Broadcom Knowledge Base"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "public-binaries",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Binaries download for components",
+      "sources": [
+        "VCF Installer",
+        "vCenter",
+        "VCF Operations",
+        "VCF Download Tool",
+        "All VCF services runtime IP pools that host a software depot"
+      ],
+      "destinations": [
+        "dl.broadcom.com",
+        "eapi.broadcom.com",
+        "vvs.broadcom.com",
+        "vsanhealth.vmware.com",
+        "vcf.packages.broadcom.com"
+      ],
+      "destinationNotes": {
+        "vcf.packages.broadcom.com": "9.1.1 and later"
+      },
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name TCP, UDP, or HTTPS. KB 443166 and KB 443947 describe the depot hosts as outbound HTTPS from fleet and VCF Service Runtime addresses, not only from the SDDC Manager appliance."
+    },
+    {
+      "id": "public-supervisor-binaries",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Binaries download for Supervisor services and VCF services",
+      "sources": [
+        "All VCF services runtime IP pools that host a software depot"
+      ],
+      "destinations": [
+        "projects.packages.broadcom.com",
+        "vcf.packages.broadcom.com"
+      ],
+      "destinationNotes": {
+        "vcf.packages.broadcom.com": "9.1.1 and later"
+      },
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-private-ai",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Binaries download for Private AI Foundation Services",
+      "sources": [
+        "Supervisor"
+      ],
+      "destinations": [
+        "pais-docker.packages.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-ceip-vcsa",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Telemetry data for the customer experience improvement program (CEIP)",
+      "sources": [
+        "SDDC Manager",
+        "VCF Operations Orchestrator",
+        "All VCF services runtime IP pools that host a software depot"
+      ],
+      "destinations": [
+        "vcsa.vmware.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol. The source cell names the runtime pools together with SDDC Manager and VCF Operations Orchestrator."
+    },
+    {
+      "id": "public-ceip-telemetry",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Telemetry data for the customer experience improvement program (CEIP)",
+      "sources": [
+        "SDDC Manager",
+        "VCF Operations",
+        "VCF Operations Orchestrator",
+        "VCF Operations HCX",
+        "All VCF services runtime IP pools that host a software depot"
+      ],
+      "destinations": [
+        "vcsa.telemetry.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "Continuation of the CEIP rows on the planning page. Port 443 is listed; a transport protocol is not."
+    },
+    {
+      "id": "public-ceip-scapi",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Telemetry data for the customer experience improvement program (CEIP)",
+      "sources": [
+        "SDDC Manager",
+        "All VCF services runtime IP pools that host a software depot"
+      ],
+      "destinations": [
+        "scapi.telemetry.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "Continuation of the CEIP rows on the planning page. Port 443 is listed; a transport protocol is not."
+    },
+    {
+      "id": "public-compatibility",
+      "documentId": "techdocs-public-urls",
+      "purpose": "VCF components compatibility data",
+      "sources": [
+        "VCF Installer",
+        "SDDC Manager",
+        "VCF Download Tool"
+      ],
+      "destinations": [
+        "vvs.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-vsan-hcl",
+      "documentId": "techdocs-public-urls",
+      "purpose": "vSAN hardware compatibility list (HCL) data",
+      "sources": [
+        "VCF Installer",
+        "SDDC Manager",
+        "vCenter",
+        "VCF Download Tool"
+      ],
+      "destinations": [
+        "vsanhealth.vmware.com",
+        "eapi.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page writes \"SDDC manager\" in this row. Port 443 is listed; a transport protocol is not."
+    },
+    {
+      "id": "public-licensing",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Licensing",
+      "sources": [
+        "VCF Operations"
+      ],
+      "destinations": [
+        "vcf.broadcom.com",
+        "eapi.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "Connected-mode license usage. The planning page lists port 443 and does not name a transport protocol. The license server itself has no internet requirement; VCF Operations sends this traffic."
+    },
+    {
+      "id": "public-umds-auth",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Authentication for the Update Manager Download Service (UMDS)",
+      "sources": [
+        "SDDC Manager",
+        "VCF Download Tool"
+      ],
+      "destinations": [
+        "auth.esp.vmware.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-umds-binaries",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Binary downloads for the Update Manager Download Service (UMDS)",
+      "sources": [
+        "SDDC Manager"
+      ],
+      "destinations": [
+        "hostupdate.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-log-assist",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Send log bundles to Broadcom by using log assist",
+      "sources": [
+        "Cloud proxy"
+      ],
+      "destinations": [
+        "eapi.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-vks",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Supervisor services, image downloads, and other vSphere Kubernetes Service (VKS) functionalities",
+      "sources": [
+        "Supervisor",
+        "vSphere Kubernetes Service (VKS) worker nodes"
+      ],
+      "destinations": [
+        "packages.broadcom.com",
+        "projects.packages.broadcom.com",
+        "vcf.packages.broadcom.com",
+        "registry.k8s.io",
+        "projects.registry.vmware.com",
+        "registry.tkg.vmware.run"
+      ],
+      "destinationNotes": {
+        "vcf.packages.broadcom.com": "9.1.1 and later"
+      },
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-vkr",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Download and synchronize vSphere Kubernetes Releases, OVF templates, and image publications",
+      "sources": [
+        "vCenter",
+        "Supervisor"
+      ],
+      "destinations": [
+        "wp-content.broadcom.com"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-vks-observability",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Observability images for VKS add-ons",
+      "sources": [
+        "Prometheus",
+        "Alertmanager",
+        "Grafana"
+      ],
+      "destinations": [
+        "quay.io"
+      ],
+      "port": "443",
+      "notes": "The planning page names Prometheus, Alertmanager, and Grafana as the source components. Port 443 is listed; a transport protocol is not."
+    },
+    {
+      "id": "public-vks-policy",
+      "documentId": "techdocs-public-urls",
+      "purpose": "Policy engine images for VKS add-ons",
+      "sources": [
+        "Kyverno"
+      ],
+      "destinations": [
+        "ghcr.io"
+      ],
+      "port": "443",
+      "notes": "The planning page lists port 443 and does not name a transport protocol."
+    },
+    {
+      "id": "public-vdefend-atp",
+      "documentId": "techdocs-public-urls",
+      "purpose": "IDS/IPS advanced threat prevention by VMware vDefend",
+      "sources": [
+        "NSX Manager"
+      ],
+      "destinations": [
+        "api.prod.nsxti.vmware.com"
+      ],
+      "port": "443",
+      "notes": "The planning page says this function is not part of the VCF SKU. Port 443 is listed; a transport protocol is not. The Ports tool names a wildcard host, *.prod.nsxti.vmware.com, rather than this exact name."
+    },
+    {
+      "id": "public-ssl-packages-cdn",
+      "documentId": "techdocs-public-urls",
+      "purpose": "SSL inspection only: AWS CDN for packages.broadcom.com",
+      "sources": [
+        "packages.broadcom.com"
+      ],
+      "destinations": [
+        "jfrog-prod-usw2-shared-oregon-main.s3.amazonaws.com"
+      ],
+      "port": "443",
+      "notes": "Required only where TLS inspection is used. The planning page lists the package host itself in the source column. Standard hostname firewalls do not need this entry."
+    },
+    {
+      "id": "public-ssl-dl-cdn",
+      "documentId": "techdocs-public-urls",
+      "purpose": "SSL inspection only: Akamai CDN for dl.broadcom.com",
+      "sources": [
+        "VCF Download Tool",
+        "VCF Installer"
+      ],
+      "destinations": [
+        "*.vmware.com.edgekey.net"
+      ],
+      "port": "443",
+      "notes": "Wildcard required. The planning page says edge hostnames rotate and a single edge hostname cannot replace the wildcard. Only for TLS inspection environments."
+    },
+    {
+      "id": "public-ssl-eapi-cdn",
+      "documentId": "techdocs-public-urls",
+      "purpose": "SSL inspection only: Akamai CDN for eapi.broadcom.com",
+      "sources": [
+        "VCF Download Tool",
+        "VCF Installer"
+      ],
+      "destinations": [
+        "*.akamaiedge.net"
+      ],
+      "port": "443",
+      "notes": "Wildcard required. Only for TLS inspection environments."
+    },
+    {
+      "id": "public-ssl-wp-cdn",
+      "documentId": "techdocs-public-urls",
+      "purpose": "SSL inspection only: Cloudflare CDN for wp-content.broadcom.com",
+      "sources": [
+        "vCenter"
+      ],
+      "destinations": [
+        "wp-content.broadcom.com.cdn.cloudflare.net"
+      ],
+      "port": "443",
+      "notes": "Only for TLS inspection environments."
+    },
+    {
+      "id": "fleet-depot-https",
+      "documentId": "kb-443166",
+      "purpose": "Online depot access from fleet components",
+      "sources": [
+        "Fleet components"
+      ],
+      "destinations": [
+        "eapi.broadcom.com",
+        "dl.broadcom.com",
+        "vvs.broadcom.com",
+        "vsanhealth.vmware.com"
+      ],
+      "port": "443",
+      "protocol": "HTTPS",
+      "classification": "Outbound",
+      "notes": "KB 443166: unrestricted outbound HTTPS from the IPs and FQDNs of the fleet components. eapi.broadcom.com is named for the OAuth token at /vcf/generateToken; dl.broadcom.com for binaries and metadata; vvs.broadcom.com for vLCM compatibility data; vsanhealth.vmware.com for vSAN health and HCL. KB 443947 states the same four URLs as outbound HTTPS from the VCF Service Runtime node IP pool. Rules that only allowed the SDDC Manager appliance are not sufficient after the 9.1 depot move."
+    },
+    {
+      "id": "operations-other-urls",
+      "documentId": "kb-443216",
+      "purpose": "Online functionality checks from the VCF Operations node",
+      "sources": [
+        "VCF Operations"
+      ],
+      "destinations": [
+        "projects.packages.broadcom.com",
+        "vcsa.vmware.com",
+        "auth.esp.vmware.com"
+      ],
+      "port": "443",
+      "protocol": "HTTPS",
+      "classification": "Outbound",
+      "notes": "KB 443216 tests these URLs with curl from the VCF Operations node, in addition to the four depot hosts. The article points at the VCF 9.1 public URL planning page for the full list."
+    },
+    {
+      "id": "license-operations-vcenter",
+      "documentId": "techdocs-license-networking",
+      "purpose": "Coordinate assignment of available licenses to vCenter instances",
+      "sources": [
+        "VCF Operations"
+      ],
+      "destinations": [
+        "vCenter"
+      ],
+      "notes": "The license networking diagram names this path and does not publish a port. It says the port list is on the Ports and Protocols tool. The same page says no other component needs a network connection to the license server; the Ports tool also contains an HCX Manager to License Server entry, which this page does not list."
+    },
+    {
+      "id": "hcx-ceip-host",
+      "documentId": "techdocs-hcx-ports",
+      "purpose": "HCX customer experience improvement program",
+      "sources": [
+        "VCF Operations HCX"
+      ],
+      "destinations": [
+        "vcsa.vmware.com"
+      ],
+      "notes": "Perimeter firewalls must allow VCF Operations HCX to reach vcsa.vmware.com. Not required when CEIP is not used. This page does not publish the port; the public URL planning page lists port 443 for other components to the same host."
+    },
+    {
+      "id": "cloud-proxy-outbound",
+      "documentId": "techdocs-cloud-proxy",
+      "purpose": "One-way cloud proxy connection to VCF Operations",
+      "sources": [
+        "Cloud proxy"
+      ],
+      "destinations": [
+        "VCF Operations"
+      ],
+      "port": "443",
+      "protocol": "HTTPS",
+      "classification": "Outbound",
+      "notes": "The FAQ says outbound connections are initiated from the cloud proxy to VCF Operations over https/443. It also says the Ports and Protocols tool is the current port list."
+    },
+    {
+      "id": "cloud-proxy-push",
+      "documentId": "techdocs-cloud-proxy",
+      "purpose": "Incoming push-model adapters on the cloud proxy",
+      "sources": [
+        "Push-model adapters"
+      ],
+      "destinations": [
+        "Cloud proxy"
+      ],
+      "port": "443",
+      "protocol": "HTTPS",
+      "classification": "Inbound",
+      "notes": "Allow port 443 HTTPS for push model adapters such as application monitoring or Suite-API on the cloud proxy. The FAQ does not name a more specific source."
+    },
+    {
+      "id": "cloud-proxy-app-monitoring",
+      "documentId": "techdocs-cloud-proxy",
+      "purpose": "Incoming application monitoring on the cloud proxy",
+      "sources": [
+        "Application monitoring"
+      ],
+      "destinations": [
+        "Cloud proxy"
+      ],
+      "port": "4505",
+      "protocol": "TCP",
+      "classification": "Inbound",
+      "notes": "The FAQ says to allow ports 4505 and 4506 via TCP for application monitoring. The client is not named. Port 4506 is a separate row."
+    },
+    {
+      "id": "cloud-proxy-app-monitoring-4506",
+      "documentId": "techdocs-cloud-proxy",
+      "purpose": "Incoming application monitoring on the cloud proxy",
+      "sources": [
+        "Application monitoring"
+      ],
+      "destinations": [
+        "Cloud proxy"
+      ],
+      "port": "4506",
+      "protocol": "TCP",
+      "classification": "Inbound",
+      "notes": "Pair to the TCP 4505 requirement in the Cloud Proxy FAQ."
+    },
+    {
+      "id": "cloud-proxy-vrrp",
+      "documentId": "techdocs-cloud-proxy",
+      "purpose": "Cloud proxy application-monitoring high availability",
+      "sources": [
+        "Cloud proxy"
+      ],
+      "destinations": [
+        "Cloud proxy"
+      ],
+      "protocol": "VRRP",
+      "classification": "Both",
+      "notes": "Allow the VRRP protocol between cloud proxies in an application-monitoring high-availability group. The FAQ does not name a port number."
+    },
+    {
+      "id": "vsan-kms",
+      "documentId": "techdocs-vsan-firewall",
+      "purpose": "vSAN encryption key exchange with an external KMS",
+      "sources": [
+        "vSAN host"
+      ],
+      "destinations": [
+        "Key Management Server"
+      ],
+      "port": "0-65535",
+      "protocol": "TCP",
+      "classification": "Outbound",
+      "notes": "The vsanEncryption host firewall rule lets a vSAN host reach any TCP port on the KMS while the exchange is active. The host adds the KMS address to the rule for the session and removes it afterwards. A native key provider does not use this external path."
+    },
+    {
+      "id": "identity-broker-ad",
+      "documentId": "kb-442139",
+      "purpose": "LDAP and LDAPS from the VCF 9.1 identity broker node",
+      "sources": [
+        "VCF Identity Broker node IP"
+      ],
+      "destinations": [
+        "Active Directory"
+      ],
+      "port": "389",
+      "protocol": "TCP",
+      "classification": "Outbound",
+      "notes": "After the 9.1 upgrade the vIDB container sources LDAP from the node IP of the host running the container, not from the previous appliance address. The KB names TCP 389 for LDAP. TCP 636 is a separate row. Firewall rules that still allow only the old source address drop the new node IP."
+    },
+    {
+      "id": "identity-broker-ldaps",
+      "documentId": "kb-442139",
+      "purpose": "LDAP and LDAPS from the VCF 9.1 identity broker node",
+      "sources": [
+        "VCF Identity Broker node IP"
+      ],
+      "destinations": [
+        "Active Directory"
+      ],
+      "port": "636",
+      "protocol": "TCP",
+      "classification": "Outbound",
+      "notes": "The KB names TCP 636 for LDAPS as the TLS form of the identity broker to Active Directory path. The source is the node IP."
+    },
+    {
+      "id": "operations-sftp",
+      "documentId": "kb-453395",
+      "purpose": "SFTP backup from VCF Operations",
+      "sources": [
+        "VCF Operations"
+      ],
+      "destinations": [
+        "SFTP backup server"
+      ],
+      "port": "22",
+      "protocol": "TCP",
+      "classification": "Outbound",
+      "notes": "KB 453395: configuring the SFTP backup location fails silently when outbound TCP 22 from the VCF Operations node to the SFTP server is blocked."
+    },
+    {
+      "id": "vmsp-bootstrap-vcenter",
+      "documentId": "kb-448888",
+      "purpose": "Temporary VMSP bootstrap VM to vCenter",
+      "sources": [
+        "VMSP Bootstrap VM"
+      ],
+      "destinations": [
+        "vCenter"
+      ],
+      "port": "443",
+      "protocol": "HTTPS",
+      "classification": "Outbound",
+      "notes": "KB 448888: bootstrap fails with PUBLIC_VSP_CLUSTER_BOOTSTRAP_FAILED when a firewall drops HTTPS from the temporary bootstrap VM to vCenter. The resolution step also calls this TCP port 443."
+    },
+    {
+      "id": "sddc-bootstrap-health",
+      "documentId": "kb-440449",
+      "purpose": "SDDC Manager health check of the VMSP bootstrap VM",
+      "sources": [
+        "SDDC Manager"
+      ],
+      "destinations": [
+        "VMSP Bootstrap VM"
+      ],
+      "port": "5480",
+      "protocol": "HTTPS",
+      "classification": "Both",
+      "notes": "KB 440449: SDDC Manager polls https://<Bootstrap_VM_IP>:5480/health. Allow TCP 5480 in both directions between SDDC Manager and the VMSP cluster or management network used for that VM. The article describes the failure during an NSX firewall exclusion step; the connectivity requirement it states is this health port."
+    }
+  ],
+  "constraints": [
+    {
+      "id": "license-no-internet",
+      "documentId": "techdocs-license-networking",
+      "text": "The license server does not communicate with the Internet. There is no external network requirement for the license server. Connected-mode upload to Broadcom is a VCF Operations path, not a license server path."
+    },
+    {
+      "id": "license-closed-set",
+      "documentId": "techdocs-license-networking",
+      "text": "License Server Networking says no other component needs a connection to the license server beyond vCenter, VCF Operations, and DNS. The Ports tool also publishes an HCX Manager to License Server flow. Treat that conflict as unresolved: this app shows both sources and does not delete the Ports tool row."
+    },
+    {
+      "id": "license-internal-ranges",
+      "documentId": "techdocs-license-networking",
+      "text": "License server 9.1.0.0 and 9.1.0.0100 use internal networks 172.16.0.0/12 and 172.17.0.0/16. Do not deploy the license server on 172.16.0.0/12, and do not point it at a gateway that advertises 172.17.0.0/16. From 9.1.0.0200 those limits no longer apply."
+    },
+    {
+      "id": "license-block-other",
+      "documentId": "techdocs-license-security",
+      "text": "License Server Security says the server communicates through the ports listed on the Ports and Protocols tool and that all other inbound and outbound traffic can be blocked. SSH cannot be enabled. The server uses the time of the ESX host that runs it."
+    },
+    {
+      "id": "license-hub-is-separate",
+      "documentId": "techdocs-license-networking",
+      "text": "vDefend License Hub pools in the Ports tool are not the VCF license server. The diagram keeps License Server in the management domain and draws License Hub with vDefend."
+    },
+    {
+      "id": "ssl-inspection",
+      "documentId": "kb-452400",
+      "text": "KB 452400: exclude eapi.broadcom.com, vcf.broadcom.com, and dl.broadcom.com from TLS inspection for VCF Operations 9.1 connection mode. KB 441891 says the same exclusion for eapi.broadcom.com and dl.broadcom.com on the online depot. KB 453215 also requires a registered, syncing license server before depot validation and names dl.broadcom.com, eapi.broadcom.com, vvs.broadcom.com, and vsanhealth.vmware.com."
+    },
+    {
+      "id": "earlier-versions-kb",
+      "documentId": "techdocs-public-urls",
+      "text": "The VCF 9.1 planning page says to use KB 327186 for earlier VCF and vSphere Foundation versions. That KB is not the 9.1 URL list. The table below is the legacy article, including rows scoped to 9.0, 5.x, and 4.x."
+    }
+  ]
+}

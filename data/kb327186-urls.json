@@ -3,8 +3,8 @@
   "articleId": "327186",
   "title": "Public URL list for VCF Products",
   "source": "https://knowledge.broadcom.com/external/article/327186",
-  "retrievedAt": "2026-09-21T11:37:17Z",
-  "appliesTo": "For VCF and vSphere Foundation 9.1",
+  "retrievedAt": "2026-09-24T13:56:53Z",
+  "appliesTo": "Legacy public URL table. The VCF 9.1 planning guide is the current list and points here for earlier versions.",
   "note": "Vendored reference for the public URLs required for online functionality. The article is the authoritative list and can change; refresh it with scripts/update_kb_urls.py or manually.",
   "entries": [
     {
@@ -26,7 +26,7 @@
       "purpose": "Telemetry data",
       "port": "443",
       "direction": "Outbound",
-      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "sourceProducts": "SDDC Manager VCF Download Tool Async Patch Tool",
       "versions": "All"
     },
     {
@@ -38,7 +38,7 @@
       "purpose": "vSphere Kubernetes Clusters",
       "port": "443",
       "direction": "Bidirectional",
-      "sourceProducts": "vCentervSphere Kubernetes",
+      "sourceProducts": "vCenter vSphere Kubernetes",
       "versions": "All"
     },
     {
@@ -73,7 +73,7 @@
       "purpose": "Download VxRail bundles",
       "port": "443",
       "direction": "Bidirectional",
-      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "sourceProducts": "SDDC Manager VCF Download Tool Async Patch Tool",
       "versions": "9.0.x, 5.x, 4.5.x"
     },
     {
@@ -96,7 +96,7 @@
       "purpose": "Update Manager Download Service",
       "port": "443",
       "direction": "Bidirectional",
-      "sourceProducts": "SDDC ManagerVCF Download ToolAsync Patch Tool",
+      "sourceProducts": "SDDC Manager VCF Download Tool Async Patch Tool",
       "versions": "5.x, 9.0.x"
     }
   ]

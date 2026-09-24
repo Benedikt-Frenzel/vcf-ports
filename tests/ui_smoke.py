@@ -41,8 +41,13 @@ try:
         assert first_source.evaluate(r'(o)=>/\s\(\d[\d,]*\)$/.test(o.textContent)')
         assert page.locator('#source optgroup').count()>0
         assert page.locator('#release optgroup').count()>0
-        # Filter chips: appear per active filter, removable individually.
+        # Filter chips: appear per active filter, including the source-data facet, and are removable individually.
         assert page.locator('.filter-chip').count()>=1  # vcenter component from URL
+        page.locator('#origin').select_option('documentation')
+        assert page.locator('.filter-chip',has_text='Source data: VCF 9.1 documentation only').count()==1
+        assert 'origin=documentation' in page.url
+        page.locator('.filter-chip',has_text='Source data:').click()
+        assert page.locator('#origin').input_value()==''
         page.locator('#product').select_option(value='6a05a29e4020a053ebfe0770')  # VMware vDefend
         assert page.locator('.filter-chip').count()==2
         page.locator('.filter-chip',has_text='VMware vDefend').click()
@@ -58,6 +63,8 @@ try:
         page.goto(base+'?components=vcenter',wait_until='networkidle')
         assert page.locator('.direction-group').count()>0
         assert page.locator('.direction-group[open]').count()==0
+        assert page.locator('.path-explanation').count()==1
+        assert page.locator('.derivation').count()>0
         page.evaluate("localStorage.setItem('vcf-ports.environment-mapping',JSON.stringify({vcenter:'vc-mgmt-01.vcf.lab'}))")
         page.reload(wait_until='networkidle')
         with page.expect_download() as download:

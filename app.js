@@ -1,9 +1,9 @@
-import { filterRows, toCSV, toFirewallCSV, toFirewallMarkdown, parseInstallerConfig, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
-import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, filterByComponents, firewallRules, pathDerivations, topologyLinks, topologyPath, uniquePorts } from './topology.js';
+import { documentationRows, filterRows, toCSV, toFirewallCSV, toFirewallMarkdown, parseInstallerConfig, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, directedPairs, directedPairsForSelection, filterByComponents, firewallRules, pathDerivations, topologyLinks, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
-const fields = ['search','product','release','protocol','classification','source','destination'];
+const fields = ['search','product','release','protocol','classification','source','destination','origin'];
 let data, filtered = [], page = 0, sourcePage = 0, destPage = 0, view = 'diagram', selectedComponents = [];
 const MAPPING_KEY = 'vcf-ports.environment-mapping';
 const componentNames = Object.fromEntries([...COMPONENTS,...ENVIRONMENT_SERVICES].map(component => [component.id, component.name]));
@@ -62,12 +62,12 @@ function saveState() {
   if (selectedComponents.length) params.set('components', selectedComponents.join(','));
   history.replaceState(null, '', `${location.pathname}${params.size ? '?' + params : ''}${location.hash}`);
 }
-const FILTER_LABELS = {product:'Product', release:'Release', protocol:'Protocol', classification:'Classification', source:'Source', destination:'Destination'};
+const FILTER_LABELS = {product:'Product', release:'Release', protocol:'Protocol', classification:'Classification', source:'Source', destination:'Destination', origin:'Source data'};
 function renderFilterChips() {
   const chips = [];
   const add = (filter, label) => chips.push(`<button class="filter-chip" type="button" data-filter="${escape(filter)}" aria-label="Remove filter ${escape(label)}">${escape(label)}<span aria-hidden="true">×</span></button>`);
   if ($('search').value.trim()) add('search', `Search: ${$('search').value.trim()}`);
-  for (const key of ['product','release','protocol','classification','source','destination'])
+  for (const key of ['product','release','protocol','classification','source','destination','origin'])
     if ($(key).value) add(key, `${FILTER_LABELS[key]}: ${$(key).selectedOptions[0].textContent.replace(/ \(\d[\d,]*\)$/, '')}`);
   for (const id of selectedComponents) add(`component:${id}`, componentById.get(id).name);
   $('filter-chips').innerHTML = chips.join('');
@@ -146,10 +146,11 @@ function buildExportSvg() {
   });
   const directions = new Map();
   for (const row of filtered) {
-    const [sourceId,destinationId] = topologyPath(row);
-    const key = `${sourceId}|${destinationId}`;
-    if (!directions.has(key)) directions.set(key,[]);
-    directions.get(key).push(row);
+    for (const [sourceId,destinationId] of directedPairsForSelection(row, selectedComponents)) {
+      const key = `${sourceId}|${destinationId}`;
+      if (!directions.has(key)) directions.set(key,[]);
+      directions.get(key).push(row);
+    }
   }
   const wrapText = (value, limit = 148) => {
     const words = String(value).split(/\s+/).filter(Boolean);
@@ -163,14 +164,14 @@ function buildExportSvg() {
     if (current) lines.push(current);
     return lines.length ? lines : [''];
   };
-  const derivationExportLines = rows => pathDerivations(rows).flatMap(item => {
+  const derivationExportLines = (rows, selected) => pathDerivations(rows, selected).flatMap(item => {
     const name = id => componentById.get(id).name;
     return [
       ...wrapText(`${item.sourceLabel || 'Not specified'} → ${name(item.source.componentId)} (${aliasReason(item.source)})`),
       ...wrapText(`${item.destinationLabel || 'Not specified'} → ${name(item.destination.componentId)} (${aliasReason(item.destination)})`),
       ...item.notes.flatMap(note => wrapText(note)),
       ...(item.sameComponent ? wrapText('Both labels map to the same box, so this entry is not drawn as a line.') : []),
-      ...wrapText(`${item.records} published ${item.records===1?'entry':'entries'} · ${item.products.join(', ')} · ${item.ports.join(' · ')}`)
+      ...wrapText(`${item.records} source ${item.records===1?'entry':'entries'} · ${item.products.join(', ')} · ${item.ports.join(' · ')}`)
     ];
   });
   const directionGroups = [...directions.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows]) => {
@@ -181,7 +182,7 @@ function buildExportSvg() {
       if (!current || `${current} · ${port}`.length > 155) lines.push(port);
       else lines[lines.length-1] += ` · ${port}`;
     }
-    return {sourceId,destinationId,rows,lines,derived:derivationExportLines(rows)};
+    return {sourceId,destinationId,rows,lines,derived:derivationExportLines(rows, [sourceId,destinationId])};
   });
   const width = 1500;
   const exportHeight = 1110 + directionGroups.reduce((height,group) => height + 43 + group.lines.length * 22 + (group.derived.length ? 24 + group.derived.length * 18 : 0), 0);
@@ -203,7 +204,7 @@ function buildExportSvg() {
     text.textContent = value; details.append(text);
   };
   addText('Selected path ports and directions', 55, 985, 'font-size:22px;font-weight:700');
-  addText(`${directionGroups.length} directions · ${filtered.length} published entries · ${uniquePorts(filtered).length} unique port / protocol labels`, 55, 1015, 'font-size:13px;fill:#5a6658');
+  addText(`${directionGroups.length} directions · ${filtered.length} source entries · ${uniquePorts(filtered).length} unique port / protocol labels`, 55, 1015, 'font-size:13px;fill:#5a6658');
   let y = 1060;
   for (const group of directionGroups) {
     addText(`${componentById.get(group.sourceId).name} → ${componentById.get(group.destinationId).name}`, 55, y, 'font-size:15px;font-weight:600');
@@ -232,7 +233,7 @@ function buildExportSvg() {
   const names = selectedComponents.map(id => componentById.get(id).name);
   title.textContent = `VCF 9.1 communication paths: ${names.join(' and ')}`;
   const description = svgElement('desc');
-  description.textContent = `${filtered.length} published entries match the selected components and current filters. Exported from VCF Ports.`;
+  description.textContent = `${filtered.length} source entries match the selected components and current filters. Exported from VCF Ports.`;
   clone.prepend(background);
   clone.prepend(description);
   clone.prepend(title);
@@ -318,13 +319,18 @@ function renderList() {
   const sorted = sortRows(filtered, $('list-sort').value, $('list-order').value);
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   page = Math.min(page, pages - 1);
-  $('rows').innerHTML = sorted.slice(page*pageSize,(page+1)*pageSize).map(r => `<tr>
-    <td><strong>${escape(r.product)}</strong><span class="sub">${r.releases.map(v => escape(v.name)).join(' · ')}</span></td>
+  $('rows').innerHTML = sorted.slice(page*pageSize,(page+1)*pageSize).map(r => {
+    const documented = r.origin === 'documentation';
+    const sourceHref = documented ? r.citationUrl : 'https://ports.broadcom.com/';
+    const sourceLabel = documented ? `Open ${r.citationTitle || 'cited document'}` : 'Verify at official source';
+    return `<tr>
+    <td><strong>${escape(r.product)}</strong><span class="sub">${r.releases.map(v => escape(v.name)).join(' · ')}</span><span class="origin-badge ${documented ? 'documentation' : 'ports'}">${documented ? 'Documentation' : 'Ports tool'}</span></td>
     <td class="endpoint-name">${endpointCell(r.source)}</td>
     <td class="endpoint-name">${endpointCell(r.destination)}</td>
     <td><span class="port">${escape(r.port || 'Not specified')}</span><span class="protocol-badge">${escape(r.protocol || 'Not specified')}</span></td>
-    <td><span class="purpose">${escape(r.purpose || 'Not specified')}</span><details class="record-details"><summary>Service &amp; source details</summary><div class="description">${escape(r.serviceDescription || 'No service description published.')}</div><dl><dt>Record ID</dt><dd>${escape(r.id)}</dd><dt>Published</dt><dd>${escape(r.publishDate || 'Not specified')}</dd></dl><a href="https://ports.broadcom.com/" target="_blank" rel="noopener">Verify at official source ↗</a></details></td>
-    <td><span class="classification-badge">${escape(r.classification || 'Not specified')}</span></td></tr>`).join('');
+    <td><span class="purpose">${escape(r.purpose || 'Not specified')}</span><details class="record-details"><summary>Service &amp; source details</summary><div class="description">${escape(r.serviceDescription || 'No service description published.')}</div><dl><dt>Record ID</dt><dd>${escape(r.id)}</dd><dt>Published</dt><dd>${escape(r.publishDate || 'Not specified')}</dd></dl><a href="${escape(sourceHref)}" target="_blank" rel="noopener">${escape(sourceLabel)} ↗</a></details></td>
+    <td><span class="classification-badge">${escape(r.classification || 'Not specified')}</span></td></tr>`;
+  }).join('');
   $('list-count').textContent = `${filtered.length.toLocaleString('en')} entries`;
   $('list-range').textContent = `Showing ${page*pageSize+1}–${Math.min((page+1)*pageSize,filtered.length)} of ${filtered.length.toLocaleString('en')}`;
   $('page').textContent = `Page ${page+1} of ${pages}`;
@@ -374,7 +380,7 @@ function renderTopology(baseRows) {
     ['hcx','vcenter'],['identity','infrastructure']
   ].map(pair => pairKey(...pair)));
   const touching = new Map(COMPONENTS.map(c => [c.id, 0]));
-  for (const row of baseRows) for (const id of new Set(topologyPath(row))) touching.set(id, touching.get(id) + 1);
+  for (const row of baseRows) for (const id of new Set(directedPairs(row).flat())) touching.set(id, (touching.get(id) || 0) + 1);
   const connected = new Set(selectedComponents);
   if (selectedComponents.length === 1) for (const link of links) {
     if (link.source === selectedComponents[0]) connected.add(link.destination);
@@ -390,7 +396,8 @@ function renderTopology(baseRows) {
   const lineSvg = links.map(link => {
     const exact = selectedComponents.length === 2 && selectedComponents.includes(link.source) && selectedComponents.includes(link.destination);
     const incident = selectedComponents.length === 1 && (link.source === selectedComponents[0] || link.destination === selectedComponents[0]);
-    const structural = selectedComponents.length === 0 && backbone.has(pairKey(link.source,link.destination));
+    const hasDocs = link.origins?.has('documentation');
+    const structural = selectedComponents.length === 0 && (backbone.has(pairKey(link.source,link.destination)) || hasDocs);
     if (!exact && !incident && !structural) return '';
     const a=componentById.get(link.source), b=componentById.get(link.destination);
     const acx=a.x+a.w/2, acy=a.y+32, bcx=b.x+b.w/2, bcy=b.y+32, dx=bcx-acx, dy=bcy-acy;
@@ -403,7 +410,7 @@ function renderTopology(baseRows) {
     const ports=[...link.ports].sort((a,b)=>a.localeCompare(b,'en',{numeric:true}));
     const label=exact ? `${ports.slice(0,3).map(port=>port.replace(' / ','/')).join(' · ')}${ports.length>3?` · +${ports.length-3}`:''}` : incident && connected.size<=9 ? `${ports.length} port / protocol ${ports.length===1?'label':'labels'}` : '';
     if (label) edgeLabels.push(`<text class="edge-label" x="${mx}" y="${my-8}">${escape(label)}</text>`);
-    return `<g class="edge ${exact||incident?'highlighted':'backbone'}" data-source="${link.source}" data-destination="${link.destination}" tabindex="0" role="button" aria-label="Communication path ${escape(a.name)} and ${escape(b.name)}: ${link.count} entries, ${ports.length} port and protocol labels"><title>${escape(`${a.name} ↔ ${b.name}: ${ports.join(', ')}`)}</title><path class="link-hit" d="${path}"/><path class="link" d="${path}"${markers}/></g>`;
+    return `<g class="edge ${exact||incident?'highlighted':'backbone'}${hasDocs?' has-docs':''}" data-source="${link.source}" data-destination="${link.destination}" tabindex="0" role="button" aria-label="Communication path ${escape(a.name)} and ${escape(b.name)}: ${link.count} entries, ${ports.length} port and protocol labels"><title>${escape(`${a.name} ↔ ${b.name}: ${ports.join(', ')}`)}</title><path class="link-hit" d="${path}"/><path class="link" d="${path}"${markers}/>${hasDocs?`<path class="link link-docs" d="${path}"/>`:''}</g>`;
   }).join('');
   const nodeSvg = COMPONENTS.map(component => {
     const selected=selectedComponents.includes(component.id), isConnected=connected.has(component.id);
@@ -439,9 +446,11 @@ function renderTopology(baseRows) {
   }
   const directional = new Map();
   for (const row of filtered) {
-    const [source,destination]=topologyPath(row), key=`${source}|${destination}`;
-    if (!directional.has(key)) directional.set(key,[]);
-    directional.get(key).push(row);
+    for (const [source,destination] of directedPairsForSelection(row, selectedComponents)) {
+      const key=`${source}|${destination}`;
+      if (!directional.has(key)) directional.set(key,[]);
+      directional.get(key).push(row);
+    }
   }
   const groups=[...directional.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows])=>{
     const [source,destination]=key.split('|');
@@ -453,17 +462,17 @@ function renderTopology(baseRows) {
       <span class="direction-preview">${escape(ports.slice(0,4).join(' · '))}${ports.length>4?` · +${ports.length-4} more`:''}</span>
       </summary><div class="protocol-groups">${protocols.map(protocol=>`<div class="protocol-row"><span class="protocol-badge">${escape(protocol)}</span><div>${unique(rows.filter(row=>(row.protocol || 'Not specified')===protocol).map(row=>row.port || 'Not specified')).map(port=>`<span class="port-chip">${escape(port)}</span>`).join('')}</div></div>`).join('')}</div></details>`;
   }).join('');
-  const derivations = pathDerivations(filtered);
+  const derivations = pathDerivations(filtered, selectedComponents);
   const derivationName = id => componentById.get(id)?.name || id;
   const derivationSide = (label, alias) => `<span class="derivation-side"><span class="derivation-label">${escape(label || 'Not specified')}</span><span class="direction-arrow" aria-hidden="true">→</span><span class="derivation-component">${escape(derivationName(alias.componentId))}</span><span class="derivation-reason">${escape(aliasReason(alias))}</span></span>`;
-  const derivationHtml = derivations.length ? `<section class="path-explanation" aria-label="How the selected paths were derived"><div class="data-heading"><div><h2>How these paths were derived <span class="count-badge">${derivations.length} published label ${derivations.length===1?'pair':'pairs'}</span></h2><p>Every selected entry uses the same alias rules. A label takes the first match; explicit internet domains stay external. Source text is not rewritten, and duplicate published entries are not merged.</p></div></div><div class="derivation-list" tabindex="0" role="region" aria-label="Alias matches for the selected paths">${derivations.map(item => `<article class="derivation"><p class="derivation-route">${derivationSide(item.sourceLabel, item.source)}${derivationSide(item.destinationLabel, item.destination)}</p>${item.notes.map(note => `<p class="derivation-note">${escape(note)}</p>`).join('')}${item.sameComponent?'<p class="derivation-note">Both labels map to the same box, so this entry is not drawn as a line.</p>':''}<p class="derivation-meta">${item.records} published ${item.records===1?'entry':'entries'}${item.products.length?` · ${escape(item.products.join(', '))}`:''} · ${escape(item.ports.join(' · '))}${item.services.length?` · ${escape(item.services.slice(0,3).join('; '))}${item.services.length>3?` · +${item.services.length-3} services`:''}`:''}${item.purposes.length?` · ${escape(item.purposes.slice(0,3).join('; '))}${item.purposes.length>3?` · +${item.purposes.length-3} purposes`:''}`:''}</p></article>`).join('')}</div></section>` : '';
-  const externalRows = filtered.filter(row => topologyPath(row).includes('infrastructure'));
+  const derivationHtml = derivations.length ? `<section class="path-explanation" aria-label="How the selected paths were derived"><div class="data-heading"><div><h2>How these paths were derived <span class="count-badge">${derivations.length} source label ${derivations.length===1?'pair':'pairs'}</span></h2><p>Every selected entry uses the same alias rules. A label takes the first match; explicit internet domains stay external. Source text is not rewritten, and duplicate source entries are not merged.</p></div></div><div class="derivation-list" tabindex="0" role="region" aria-label="Alias matches for the selected paths">${derivations.map(item => `<article class="derivation"><p class="derivation-route">${derivationSide(item.sourceLabel, item.source)}${derivationSide(item.destinationLabel, item.destination)}</p>${item.notes.map(note => `<p class="derivation-note">${escape(note)}</p>`).join('')}${item.sameComponent?'<p class="derivation-note">Both labels map to the same box, so this entry is not drawn as a line.</p>':''}<p class="derivation-meta">${item.records} source ${item.records===1?'entry':'entries'}${item.products.length?` · ${escape(item.products.join(', '))}`:''} · ${escape(item.ports.join(' · '))}${item.services.length?` · ${escape(item.services.slice(0,3).join('; '))}${item.services.length>3?` · +${item.services.length-3} services`:''}`:''}${item.purposes.length?` · ${escape(item.purposes.slice(0,3).join('; '))}${item.purposes.length>3?` · +${item.purposes.length-3} purposes`:''}`:''}</p></article>`).join('')}</div></section>` : '';
+  const externalRows = filtered.filter(row => directedPairsForSelection(row, selectedComponents).some(pair => pair.includes('infrastructure')));
   const externalNote = externalRows.length ? (() => {
     const counts = {broadcom:0, vmware:0, other:0};
     for (const item of externalDomains(externalRows)) counts[item.owner]++;
     return `<p class="path-note"><strong>Internet destinations on these paths:</strong> ${counts.broadcom} Broadcom, ${counts.vmware} VMware, ${counts.other} third-party domains. <a href="#external-domains">See the full domain list and KB reference</a>.</p>`;
   })() : '';
-  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div>${derivationHtml}${externalNote}<p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
+  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} source entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div>${derivationHtml}${externalNote}<p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
   const toggle=$('toggle-paths');
   if(toggle) {
     const details=[...$('path-ports').querySelectorAll('details')];
@@ -475,10 +484,23 @@ function renderTopology(baseRows) {
 }
 async function init() {
   try {
-    const response = await fetch('./data/vcf-9.1.json');
+    const [response, docsResponse] = await Promise.all([fetch('./data/vcf-9.1.json'), fetch('./data/vcf-9.1-docs.json')]);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!docsResponse.ok) throw new Error(`HTTP ${docsResponse.status}`);
     data = await response.json();
+    const documentation = await docsResponse.json();
     if (data.vcfVersion !== '9.1' || !data.rows?.length) throw new Error('Invalid snapshot');
+    const docRows = documentationRows(documentation);
+    data.documentation = documentation;
+    data.products = [...data.products, {
+      id: 'vcf-9.1-docs',
+      name: 'VCF 9.1 documentation',
+      category: 'Documentation',
+      releases: documentation.documents.map(document => ({id: document.id, name: document.shortName})),
+      rowCount: docRows.length
+    }];
+    data.rows = [...data.rows, ...docRows];
+    const portsCount = data.rows.length - docRows.length;
     setOptions('product', 'All VCF 9.1 products', [...data.products].sort((a,b) => a.name.localeCompare(b.name, 'en')).map(p => ({value: p.id, label: p.name, count: p.rowCount})));
     for (const key of ['protocol','classification'])
       setOptions(key, `All ${key === 'classification' ? 'classifications' : key + 's'}`, [...countBy(data.rows, key)].filter(([value]) => value).sort((a,b) => a[0].localeCompare(b[0], 'en')).map(([value,count]) => ({value, label: value, count})));
@@ -489,9 +511,13 @@ async function init() {
     releaseOptions(); if (params.has('release')) $('release').value=params.get('release');
     if (['list','matrix'].includes(params.get('view'))) view=params.get('view');
     selectedComponents=(params.get('components')||'').split(',').filter(id=>componentById.has(id)).slice(0,2);
-    $('stats').innerHTML = [[data.rows.length,'Published entries'],[data.products.length,'Mapped products'],[new Set(data.rows.flatMap(r=>[r.source,r.destination])).size,'Source & destination labels'],[new Set(data.rows.map(r=>`${r.port}/${r.protocol}`)).size,'Port / protocol combinations']].map(([n,label])=>`<div class="stat"><strong>${n.toLocaleString('en')}</strong><span>${label}</span></div>`).join('');
-    $('provenance').textContent = `Source: ports.broadcom.com · Retrieved ${new Date(data.retrievedAt).toLocaleString('en-GB', {timeZone:'UTC'})} UTC. This is a bundled snapshot, not a live feed.`;
-    $('coverage-list').innerHTML=data.products.map(p=>`<div class="coverage-item"><strong>${escape(p.name)}</strong><span class="sub">Mapped: ${p.releases.map(r=>escape(r.name)).join(', ')}<br>${p.rowCount} published entries${p.rowCount ? '' : ' — no matching data available'}</span></div>`).join('');
+    $('stats').innerHTML = [[portsCount,'Ports tool entries'],[docRows.length,'Documented requirements'],[data.products.length - 1,'Mapped products'],[new Set(data.rows.map(r=>`${r.port}/${r.protocol}`)).size,'Port / protocol labels']].map(([n,label])=>`<div class="stat"><strong>${n.toLocaleString('en')}</strong><span>${label}</span></div>`).join('');
+    $('provenance').textContent = `Ports tool: ports.broadcom.com, retrieved ${new Date(data.retrievedAt).toLocaleString('en-GB', {timeZone:'UTC'})} UTC (${portsCount.toLocaleString('en')} published entries). Documentation: ${docRows.length.toLocaleString('en')} cited VCF 9.1 requirements compiled ${documentation.compiledAt}, shown with a Documentation badge. They are not Ports tool records.`;
+    $('doc-constraints').innerHTML = documentation.constraints.map(item => {
+      const document = documentation.documents.find(entry => entry.id === item.documentId);
+      return `<li><a href="${escape(document.url)}" target="_blank" rel="noopener">${escape(document.shortName)}</a>: ${escape(item.text)}</li>`;
+    }).join('');
+    $('coverage-list').innerHTML=data.products.map(p=>`<div class="coverage-item"><strong>${escape(p.name)}</strong><span class="sub">Mapped: ${p.releases.map(r=>escape(r.name)).join(', ')}<br>${p.rowCount} ${p.id === 'vcf-9.1-docs' ? 'cited requirements' : 'published entries'}${p.rowCount ? '' : ' — no matching data available'}</span></div>`).join('');
     fields.forEach(key => $(key).addEventListener(key==='search'?'input':'change',()=>{
       if(key==='product') releaseOptions();
       page=sourcePage=destPage=0; render();
@@ -521,10 +547,10 @@ async function init() {
       downloadFile(toCSV(filtered),'vcf-9.1-filtered-connections.csv','text/csv;charset=utf-8');
     });
     $('export-firewall').addEventListener('click',()=>{
-      downloadFile(toFirewallCSV(firewallRules(filtered),environmentMapping,componentNames),'vcf-9.1-firewall-request.csv','text/csv;charset=utf-8');
+      downloadFile(toFirewallCSV(firewallRules(filtered, selectedComponents),environmentMapping,componentNames),'vcf-9.1-firewall-request.csv','text/csv;charset=utf-8');
     });
     $('export-firewall-md').addEventListener('click',()=>{
-      downloadFile(toFirewallMarkdown(firewallRules(filtered),environmentMapping,componentNames,{snapshot:`ports.broadcom.com VCF ${data.vcfVersion}, retrieved ${new Date(data.retrievedAt).toISOString().slice(0,10)}`,rows:filtered.length}),'vcf-9.1-firewall-request.md','text/markdown;charset=utf-8');
+      downloadFile(toFirewallMarkdown(firewallRules(filtered, selectedComponents),environmentMapping,componentNames,{snapshot:`ports.broadcom.com VCF ${data.vcfVersion}, retrieved ${new Date(data.retrievedAt).toISOString().slice(0,10)}, plus cited VCF 9.1 documentation according to the active source filters`,rows:filtered.length}),'vcf-9.1-firewall-request.md','text/markdown;charset=utf-8');
     });
     renderEnvironmentMapping();
     $('env-import').addEventListener('click',()=>{

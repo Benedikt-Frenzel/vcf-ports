@@ -22,16 +22,17 @@ PROTOCOL_MAP = {
     'UDP TCP': 'TCP/UDP',
     'TCP and UDP': 'TCP/UDP',
     'TCP, UDP': 'TCP/UDP',
-    'TLS/TCP': 'TCP',
-    'gRPC/TCP': 'TCP',
+    'TLS/TCP': 'TLS/TCP',
+    'gRPC/TCP': 'gRPC/TCP',
     'TLS': 'TLS',
-    'SSL': 'TLS',
+    'SSL': 'SSL',
     'NFS': 'NFS',
-    'SOAP': 'HTTPS',
+    'SOAP': 'SOAP',
     'ESP (IP protocol 50)': 'ESP',
 }
 
-# Direction is the primary classification; functional scopes collapsed to Internal.
+# Direction synonyms are collapsed. Functional scopes such as Management,
+# User Interface, and Ingestion stay as published so they are not relabelled Internal.
 CLASSIFICATION_MAP = {
     'Inbound': 'Inbound',
     'Incoming': 'Inbound',
@@ -43,11 +44,6 @@ CLASSIFICATION_MAP = {
     'bi-directional': 'Both',
     '-': 'N/A',
     'NA': 'N/A',
-    'Management': 'Internal',
-    'User Interface': 'Internal',
-    'Ingestion': 'Internal',
-    'Cluster Internal': 'Internal',
-    'VCenter Internal': 'Internal',
 }
 
 _ICMP_PORT = re.compile(r'^Type (\d+), Code (\d+)$')
@@ -68,6 +64,7 @@ def normalise_classification(value):
 def normalise_port(value):
     if not value:
         return value
+    value = value.strip()
     match = _ICMP_PORT.match(value)
     return f'ICMP Type {match.group(1)}/Code {match.group(2)}' if match else value
 
