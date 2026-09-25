@@ -1,5 +1,5 @@
 import { filterRows, toCSV, toFirewallCSV, toFirewallMarkdown, parseInstallerConfig, matrixCounts, matrixAxes, sortRows, domainsInText, domainOwner, externalDomains } from './logic.js';
-import { COMPONENTS, ENVIRONMENT_SERVICES, componentForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from './topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, filterByComponents, firewallRules, pathDerivations, topologyLinks, topologyPath, uniquePorts } from './topology.js';
 const $ = id => document.getElementById(id);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unique = values => [...new Set(values)].sort((a,b) => a.localeCompare(b, 'en', {numeric:true}));
@@ -151,6 +151,28 @@ function buildExportSvg() {
     if (!directions.has(key)) directions.set(key,[]);
     directions.get(key).push(row);
   }
+  const wrapText = (value, limit = 148) => {
+    const words = String(value).split(/\s+/).filter(Boolean);
+    const lines = [];
+    let current = '';
+    for (const word of words) {
+      const next = current ? `${current} ${word}` : word;
+      if (current && next.length > limit) { lines.push(current); current = word; }
+      else current = next;
+    }
+    if (current) lines.push(current);
+    return lines.length ? lines : [''];
+  };
+  const derivationExportLines = rows => pathDerivations(rows).flatMap(item => {
+    const name = id => componentById.get(id).name;
+    return [
+      ...wrapText(`${item.sourceLabel || 'Not specified'} → ${name(item.source.componentId)} (${aliasReason(item.source)})`),
+      ...wrapText(`${item.destinationLabel || 'Not specified'} → ${name(item.destination.componentId)} (${aliasReason(item.destination)})`),
+      ...item.notes.flatMap(note => wrapText(note)),
+      ...(item.sameComponent ? wrapText('Both labels map to the same box, so this entry is not drawn as a line.') : []),
+      ...wrapText(`${item.records} published ${item.records===1?'entry':'entries'} · ${item.products.join(', ')} · ${item.ports.join(' · ')}`)
+    ];
+  });
   const directionGroups = [...directions.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([key,rows]) => {
     const [sourceId,destinationId] = key.split('|');
     const lines = [];
@@ -159,10 +181,10 @@ function buildExportSvg() {
       if (!current || `${current} · ${port}`.length > 155) lines.push(port);
       else lines[lines.length-1] += ` · ${port}`;
     }
-    return {sourceId,destinationId,rows,lines};
+    return {sourceId,destinationId,rows,lines,derived:derivationExportLines(rows)};
   });
   const width = 1500;
-  const exportHeight = 1110 + directionGroups.reduce((height,group) => height + 43 + group.lines.length * 22, 0);
+  const exportHeight = 1110 + directionGroups.reduce((height,group) => height + 43 + group.lines.length * 22 + (group.derived.length ? 24 + group.derived.length * 18 : 0), 0);
   clone.setAttribute('viewBox', `0 0 ${width} ${exportHeight}`);
   clone.setAttribute('width', String(width));
   clone.setAttribute('height', String(exportHeight));
@@ -190,6 +212,15 @@ function buildExportSvg() {
     for (const line of group.lines) {
       addText(line, 55, y, 'font-family:ui-monospace,monospace;font-size:13px;fill:#3d5846');
       y += 22;
+    }
+    if (group.derived.length) {
+      addText('Derived from published labels', 55, y, 'font-size:12px;font-weight:600;fill:#3d5846');
+      y += 20;
+      for (const line of group.derived) {
+        addText(line, 55, y, 'font-size:11px;fill:#5a6658');
+        y += 18;
+      }
+      y += 4;
     }
     const separator = svgElement('line');
     separator.setAttribute('x1', '55'); separator.setAttribute('x2', '1445'); separator.setAttribute('y1', String(y)); separator.setAttribute('y2', String(y)); separator.setAttribute('style', 'stroke:#e8e0d0;stroke-width:1');
@@ -422,13 +453,17 @@ function renderTopology(baseRows) {
       <span class="direction-preview">${escape(ports.slice(0,4).join(' · '))}${ports.length>4?` · +${ports.length-4} more`:''}</span>
       </summary><div class="protocol-groups">${protocols.map(protocol=>`<div class="protocol-row"><span class="protocol-badge">${escape(protocol)}</span><div>${unique(rows.filter(row=>(row.protocol || 'Not specified')===protocol).map(row=>row.port || 'Not specified')).map(port=>`<span class="port-chip">${escape(port)}</span>`).join('')}</div></div>`).join('')}</div></details>`;
   }).join('');
+  const derivations = pathDerivations(filtered);
+  const derivationName = id => componentById.get(id)?.name || id;
+  const derivationSide = (label, alias) => `<span class="derivation-side"><span class="derivation-label">${escape(label || 'Not specified')}</span><span class="direction-arrow" aria-hidden="true">→</span><span class="derivation-component">${escape(derivationName(alias.componentId))}</span><span class="derivation-reason">${escape(aliasReason(alias))}</span></span>`;
+  const derivationHtml = derivations.length ? `<section class="path-explanation" aria-label="How the selected paths were derived"><div class="data-heading"><div><h2>How these paths were derived <span class="count-badge">${derivations.length} published label ${derivations.length===1?'pair':'pairs'}</span></h2><p>Every selected entry uses the same alias rules. A label takes the first match; explicit internet domains stay external. Source text is not rewritten, and duplicate published entries are not merged.</p></div></div><div class="derivation-list" tabindex="0" role="region" aria-label="Alias matches for the selected paths">${derivations.map(item => `<article class="derivation"><p class="derivation-route">${derivationSide(item.sourceLabel, item.source)}${derivationSide(item.destinationLabel, item.destination)}</p>${item.notes.map(note => `<p class="derivation-note">${escape(note)}</p>`).join('')}${item.sameComponent?'<p class="derivation-note">Both labels map to the same box, so this entry is not drawn as a line.</p>':''}<p class="derivation-meta">${item.records} published ${item.records===1?'entry':'entries'}${item.products.length?` · ${escape(item.products.join(', '))}`:''} · ${escape(item.ports.join(' · '))}${item.services.length?` · ${escape(item.services.slice(0,3).join('; '))}${item.services.length>3?` · +${item.services.length-3} services`:''}`:''}${item.purposes.length?` · ${escape(item.purposes.slice(0,3).join('; '))}${item.purposes.length>3?` · +${item.purposes.length-3} purposes`:''}`:''}</p></article>`).join('')}</div></section>` : '';
   const externalRows = filtered.filter(row => topologyPath(row).includes('infrastructure'));
   const externalNote = externalRows.length ? (() => {
     const counts = {broadcom:0, vmware:0, other:0};
     for (const item of externalDomains(externalRows)) counts[item.owner]++;
     return `<p class="path-note"><strong>Internet destinations on these paths:</strong> ${counts.broadcom} Broadcom, ${counts.vmware} VMware, ${counts.other} third-party domains. <a href="#external-domains">See the full domain list and KB reference</a>.</p>`;
   })() : '';
-  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div>${externalNote}<p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
+  $('path-ports').innerHTML=`<div class="data-heading"><div><h2>Selected path ports <span class="count-badge">${uniquePorts(filtered).length} unique port / protocol ${uniquePorts(filtered).length===1?'label':'labels'}</span></h2><p>${directional.size} directions · ${filtered.length} published entries. Expand a direction to see all ports, grouped by protocol.</p></div>${directional.size?'<button id="toggle-paths" class="btn btn-sm" type="button">Expand all</button>':''}</div><div class="direction-list" tabindex="0" role="region" aria-label="Scrollable port groups by direction">${groups || '<p>No direct published source entries match this selection and the current filters.</p>'}</div>${derivationHtml}${externalNote}<p class="path-note">Counts use exact published labels; port ranges are not expanded. Directions are kept separate and labels can occur on several paths.</p>`;
   const toggle=$('toggle-paths');
   if(toggle) {
     const details=[...$('path-ports').querySelectorAll('details')];

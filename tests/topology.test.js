@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { COMPONENTS, ENVIRONMENT_SERVICES, componentForEndpoint, environmentKeyForEndpoint, filterByComponents, firewallRules, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, environmentKeyForEndpoint, explainPath, filterByComponents, firewallRules, pathDerivations, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('known latency-diagram endpoint labels map to logical components', () => {
@@ -35,6 +35,37 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'DNS Resolvers':'infrastructure'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
+});
+test('every selected path can explain the alias that placed each published label', () => {
+  for (const row of data.rows) {
+    const explained = explainPath(row);
+    assert.deepEqual(topologyPath(row), [explained.source.componentId, explained.destination.componentId]);
+    for (const side of [explained.source, explained.destination]) {
+      assert.ok(['label','internet-domain','unmatched','product-boundary'].includes(side.kind), side.kind);
+      assert.ok(aliasReason(side));
+      if (side.kind === 'label' || side.kind === 'product-boundary') assert.match(side.kind === 'product-boundary' ? row.source + row.destination : row.source + ' ' + row.destination, new RegExp(side.matched.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+    }
+  }
+  const nsx = pathDerivations(data.rows.filter(row => row.source === 'NSX Edge / Host' && row.destination === 'VMSP Cluster' && row.port === '443'));
+  assert.equal(nsx.length, 1);
+  assert.equal(nsx[0].records, 2);
+  assert.equal(nsx[0].sourceId, 'nsx');
+  assert.equal(nsx[0].destinationId, 'management');
+  assert.equal(nsx[0].source.matched, 'NSX');
+  assert.equal(nsx[0].destination.matched, 'VMSP');
+  assert.match(nsx[0].notes[0], /stays under VCF Management Services/);
+  assert.deepEqual(nsx[0].ports, ['443 / TCP']);
+  const automation = data.rows.find(row => row.product === 'VCF Automation' && row.source.startsWith('VCF Management Services Platform') && row.destination.startsWith('vCenter'));
+  const automationPath = explainPath(automation);
+  assert.equal(automationPath.source.kind, 'product-boundary');
+  assert.equal(automationPath.source.componentId, 'automation');
+  assert.match(automationPath.notes[0], /owning product is VCF Automation/);
+  const external = explainPath({source:'vCenter Server', destination:'nsx.lastline.com', product:'vDefend'});
+  assert.equal(external.destination.kind, 'internet-domain');
+  assert.equal(external.destination.componentId, 'infrastructure');
+  const unmatched = explainPath({source:'Offline Depot', destination:'DNS Resolvers'});
+  assert.equal(unmatched.source.kind, 'unmatched');
+  assert.equal(unmatched.source.componentId, 'infrastructure');
 });
 test('VCF Automation presents its included VMSP to vCenter records at the Automation service boundary', () => {
   const automationRow = data.rows.find(row => row.product === 'VCF Automation' && row.source.startsWith('VCF Management Services Platform') && row.destination.startsWith('vCenter'));
