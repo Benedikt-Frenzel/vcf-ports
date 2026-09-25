@@ -23,16 +23,16 @@ def test_protocol_canonicalisation():
     assert normalise_protocol('UDP TCP') == 'TCP/UDP'
     assert normalise_protocol('TCP and UDP') == 'TCP/UDP'
     assert normalise_protocol('TCP, UDP') == 'TCP/UDP'
-    assert normalise_protocol('TLS/TCP') == 'TCP'
-    assert normalise_protocol('gRPC/TCP') == 'TCP'
-    assert normalise_protocol('SSL') == 'TLS'
-    assert normalise_protocol('SOAP') == 'HTTPS'
+    assert normalise_protocol('TLS/TCP') == 'TLS/TCP'
+    assert normalise_protocol('gRPC/TCP') == 'gRPC/TCP'
+    assert normalise_protocol('SSL') == 'SSL'
+    assert normalise_protocol('SOAP') == 'SOAP'
     assert normalise_protocol('ESP (IP protocol 50)') == 'ESP'
     assert normalise_protocol('TCP') == 'TCP'
     assert normalise_protocol('') == ''
     assert PROTOCOL_MAP == {k: v for k, v in PROTOCOL_MAP.items() if k == v} | {k: v for k, v in PROTOCOL_MAP.items() if k != v and v != k}
     # Each non-canonical entry maps to a different canonical value; canonical entries map to themselves.
-    canonical = {'TCP', 'UDP', 'ICMP', 'HTTPS', 'TCP/UDP', 'HTTP', 'TLS', 'ESP', 'NFS'}
+    canonical = {'TCP', 'UDP', 'ICMP', 'HTTPS', 'TCP/UDP', 'HTTP', 'TLS', 'TLS/TCP', 'gRPC/TCP', 'SSL', 'SOAP', 'ESP', 'NFS'}
     for key, target in PROTOCOL_MAP.items():
         assert target in canonical
         if key != target:
@@ -51,13 +51,14 @@ def test_classification_canonicalisation():
     assert normalise_classification('-') == 'N/A'
     assert normalise_classification('NA') == 'N/A'
     for scope in ('Management', 'User Interface', 'Ingestion', 'Cluster Internal', 'VCenter Internal'):
-        assert normalise_classification(scope) == 'Internal'
+        assert normalise_classification(scope) == scope
 
 
 def test_port_canonicalisation():
     assert normalise_port('Type 0, Code 0') == 'ICMP Type 0/Code 0'
     assert normalise_port('Type 8, Code 0') == 'ICMP Type 8/Code 0'
     assert normalise_port('443') == '443'
+    assert normalise_port('443\t') == '443'
     assert normalise_port('user-configurable') == 'user-configurable'
     assert normalise_port('') == ''
 
@@ -81,9 +82,16 @@ def test_normalised_snapshot_is_deduplicated():
     snapshot = load(open(Path(__file__).resolve().parents[1] / 'data' / 'vcf-9.1.json'))
     protocols = {row['protocol'] for row in snapshot['rows']}
     classifications = {row['classification'] for row in snapshot['rows']}
-    assert protocols <= {'TCP', 'UDP', 'ICMP', 'HTTPS', 'TCP/UDP', 'HTTP', 'TLS', 'ESP', 'NFS'}
-    assert classifications <= {'Inbound', 'Outbound', 'Both', 'N/A', 'Internal'}
+    assert protocols <= {'TCP', 'UDP', 'ICMP', 'HTTPS', 'TCP/UDP', 'HTTP', 'TLS', 'TLS/TCP', 'gRPC/TCP', 'SSL', 'SOAP', 'ESP', 'NFS'}
+    assert classifications <= {'Inbound', 'Outbound', 'Both', 'N/A', 'Internal', 'Management', 'User Interface', 'Ingestion', 'Cluster Internal', 'VCenter Internal'}
+    assert 'TLS/TCP' in protocols
+    assert 'gRPC/TCP' in protocols
+    assert 'SOAP' in protocols
+    assert 'Management' in classifications
+    assert 'User Interface' in classifications
     for row in snapshot['rows']:
+        if row['port'] != row['port'].strip():
+            raise AssertionError(f'port whitespace was not trimmed: {row["port"]!r}')
         if row['port'].startswith('Type '):
             raise AssertionError(f'unnormalised ICMP port: {row["port"]!r}')
 

@@ -1,6 +1,45 @@
+export function documentationRows(catalog) {
+  const documents = new Map((catalog.documents || []).map(document => [document.id, document]));
+  const rows = [];
+  for (const requirement of catalog.requirements || []) {
+    const document = documents.get(requirement.documentId);
+    if (!document) throw new Error(`Unknown document ${requirement.documentId}`);
+    if (!requirement.sources?.length || !requirement.destinations?.length) throw new Error(`Requirement ${requirement.id} needs sources and destinations`);
+    requirement.sources.forEach((source, sourceIndex) => {
+      requirement.destinations.forEach((destination, destinationIndex) => {
+        const qualifier = requirement.destinationNotes?.[destination];
+        const serviceDescription = [
+          requirement.notes,
+          qualifier ? `${destination}: ${qualifier}.` : '',
+          `Cited from ${document.title} (${document.url}), ${document.updated ? `updated ${document.updated}` : `retrieved ${catalog.compiledAt}`}.`
+        ].filter(Boolean).join(' ');
+        rows.push({
+          id: `doc:${requirement.id}:${sourceIndex}:${destinationIndex}`,
+          port: requirement.port || 'Not specified',
+          protocol: requirement.protocol || 'Not specified',
+          source,
+          destination,
+          purpose: requirement.purpose,
+          serviceDescription,
+          classification: requirement.classification || 'Not specified',
+          publishDate: document.updated,
+          product: 'VCF 9.1 documentation',
+          productId: 'vcf-9.1-docs',
+          releases: [{id: document.id, name: document.shortName}],
+          origin: 'documentation',
+          citationUrl: document.url,
+          citationTitle: document.title
+        });
+      });
+    });
+  }
+  return rows;
+}
 export function filterRows(rows, filters) {
   const terms = (filters.search || '').toLowerCase().trim().split(/\s+/).filter(Boolean);
   return rows.filter(row => {
+    if (filters.origin === 'ports' && row.origin === 'documentation') return false;
+    if (filters.origin === 'documentation' && row.origin !== 'documentation') return false;
     if (filters.product && row.productId !== filters.product) return false;
     if (filters.release && !row.releases.some(r => r.id === filters.release)) return false;
     for (const key of ['protocol', 'classification', 'source', 'destination']) {
@@ -16,8 +55,8 @@ export function csvCell(value) {
   return '"' + text.replaceAll('"', '""') + '"';
 }
 export function toCSV(rows) {
-  const keys = ['product', 'releases', 'source', 'destination', 'port', 'protocol', 'purpose', 'serviceDescription', 'classification', 'id', 'publishDate'];
-  return '\uFEFF' + [keys.map(csvCell).join(','), ...rows.map(r => keys.map(k => csvCell(k === 'releases' ? r.releases.map(v => v.name).join('; ') : r[k])).join(','))].join('\r\n');
+  const keys = ['product', 'releases', 'source', 'destination', 'port', 'protocol', 'purpose', 'serviceDescription', 'classification', 'id', 'publishDate', 'origin', 'citation'];
+  return '\uFEFF' + [keys.map(csvCell).join(','), ...rows.map(r => keys.map(k => csvCell(k === 'releases' ? r.releases.map(v => v.name).join('; ') : k === 'origin' ? (r.origin || 'ports') : k === 'citation' ? (r.citationUrl || '') : r[k])).join(','))].join('\r\n');
 }
 // Sort a copy: presentation order must not mutate the snapshot or CSV data.
 export function sortRows(rows, key = 'product', direction = 'asc') {
@@ -36,8 +75,8 @@ export function matrixAxes(rows, order = 'activity') {
 // Internet domains: extracted from endpoint labels and service descriptions.
 // The pattern requires a dotted FQDN with a known generic TLD, so version
 // numbers ("9.1") and article references ("KB 327186") never match.
-const FQDN_PATTERN = /(?<![\w-])(\*\.)?((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|io|net|org|dev|ai|cloud|app|gov|edu))(?![\w-])/gi;
-const TLDS = new Set(['com','io','net','org','dev','ai','cloud','app','gov','edu']);
+const FQDN_PATTERN = /(?<![\w-])(\*\.)?((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:com|io|net|org|dev|ai|cloud|app|gov|edu|run))(?![\w-])/gi;
+const TLDS = new Set(['com','io','net','org','dev','ai','cloud','app','gov','edu','run']);
 export function domainOwner(domain) {
   // VMware is a Broadcom division, and Lastline was acquired by VMware, so
   // legacy lastline.com services (vDefend ATP cloud) group under VMware
@@ -55,7 +94,10 @@ export function externalDomains(rows) {
   const map = new Map();
   for (const row of rows) {
     const inLabels = new Set([...domainsInText(row.source), ...domainsInText(row.destination)]);
-    const inDescriptions = domainsInText(row.serviceDescription);
+    // Documentation rows carry their citation URL in the service description.
+    // It is provenance, not a network destination, so only their endpoint labels
+    // contribute domains. Ports-tool descriptions still contribute named hosts.
+    const inDescriptions = row.origin === 'documentation' ? new Set() : domainsInText(row.serviceDescription);
     if (!inLabels.size && !inDescriptions.size) continue;
     for (const domain of new Set([...inLabels, ...inDescriptions])) {
       const entry = map.get(domain) || {domain, owner: domainOwner(domain), label: false, description: false, records: new Set(), ports: new Set(), products: new Set()};
@@ -120,8 +162,14 @@ function templateAddress(mapping, componentId, names) {
   if (value) return value;
   return `<${names[componentId] || componentId} IPs / FQDNs>`;
 }
+function ruleOrigins(rule) {
+  return [...(rule.origins || ['ports'])].map(origin => origin === 'documentation' ? 'VCF 9.1 documentation' : 'Ports tool').join('; ');
+}
+function ruleCitations(rule) {
+  return [...(rule.citations || [])].join('; ');
+}
 export function toFirewallCSV(rules, mapping, names) {
-  const keys = ['Source address', 'Destination address', 'Port', 'Protocol', 'Bi-directional', 'Purpose', 'Classification', 'Records', 'Source component', 'Destination component'];
+  const keys = ['Source address', 'Destination address', 'Port', 'Protocol', 'Bi-directional', 'Purpose', 'Classification', 'Records', 'Source data', 'Citations', 'Source component', 'Destination component'];
   const lines = [keys.map(csvCell).join(',')];
   for (const rule of rules) {
     lines.push([
@@ -133,6 +181,8 @@ export function toFirewallCSV(rules, mapping, names) {
       [...rule.purposes][0] || 'Not specified',
       [...rule.classifications].join('; '),
       rule.records,
+      ruleOrigins(rule),
+      ruleCitations(rule),
       names[rule.source] || rule.source,
       names[rule.destination] || rule.destination,
     ].map(csvCell).join(','));
@@ -141,18 +191,18 @@ export function toFirewallCSV(rules, mapping, names) {
 }
 export function toFirewallMarkdown(rules, mapping, names, meta = {}) {
   const cell = value => String(value ?? '').replaceAll('|', '\\|');
-  const rows = rules.map(rule => `| ${cell(templateAddress(mapping, rule.source, names))} | ${cell(templateAddress(mapping, rule.destination, names))} | ${cell(rule.port || 'Not specified')} | ${cell(rule.protocol || 'Not specified')} | ${isBidirectional(rule.classifications) ? 'yes' : 'no'} | ${cell([...rule.purposes][0] || 'Not specified')} | ${rule.records} |`);
+  const rows = rules.map(rule => `| ${cell(templateAddress(mapping, rule.source, names))} | ${cell(templateAddress(mapping, rule.destination, names))} | ${cell(rule.port || 'Not specified')} | ${cell(rule.protocol || 'Not specified')} | ${isBidirectional(rule.classifications) ? 'yes' : 'no'} | ${cell([...rule.purposes][0] || 'Not specified')} | ${rule.records} | ${cell(ruleOrigins(rule))} | ${cell(ruleCitations(rule))} |`);
   return [
     `# VCF 9.1 firewall request`,
     '',
     `Generated ${new Date().toISOString().slice(0, 10)} from the VCF Ports communication explorer.`,
-    meta.snapshot ? `Snapshot: ${meta.snapshot} (${meta.rows ?? rules.reduce((total, rule) => total + rule.records, 0)} published entries).` : '',
+    meta.snapshot ? `Sources: ${meta.snapshot} (${meta.rows ?? rules.reduce((total, rule) => total + rule.records, 0)} selected source entries).` : '',
     mapping && Object.keys(mapping).length ? 'Addresses come from the browser-local environment mapping; `<Component> IPs / FQDNs>` marks gaps to fill in.' : 'All addresses are placeholders — map your environment first or replace them with your values.',
     '',
-    'Planning aid only: validate every rule against current product documentation and your deployment before applying it. Counts are published source entries, not deduplicated firewall rules.',
+    'Planning aid only: validate every rule against current product documentation and your deployment before applying it. Counts mix Ports tool records and cited VCF 9.1 documentation; they are not deduplicated firewall rules.',
     '',
-    '| Source | Destination | Port | Protocol | Bi-directional | Purpose | Records |',
-    '| --- | --- | --- | --- | --- | --- | --- |',
+    '| Source | Destination | Port | Protocol | Bi-directional | Purpose | Records | Source data | Citations |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
     '',
   ].filter(line => line !== '').join('\n');

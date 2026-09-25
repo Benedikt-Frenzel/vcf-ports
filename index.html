@@ -82,8 +82,9 @@
           <label>Classification<select id="classification" class="clr-select"></select></label>
           <label>Source endpoint<select id="source" class="clr-select"></select></label>
           <label>Destination endpoint<select id="destination" class="clr-select"></select></label>
+          <label>Source data<select id="origin" class="clr-select"><option value="">Ports tool and documentation</option><option value="ports">Ports tool only</option><option value="documentation">VCF 9.1 documentation only</option></select></label>
         </div>
-        <p class="filter-note">Endpoint labels are preserved exactly from the source tool. Dropdowns show snapshot record counts; endpoints are grouped by diagram component.</p>
+        <p class="filter-note">Ports tool labels stay as published. Documentation rows cite a VCF 9.1 TechDocs page or knowledge base article and use “Not specified” where that page does not name a protocol or direction. Dropdowns show record counts; endpoints are grouped by diagram component.</p>
         <div id="filter-chips" class="filter-chips" role="list" aria-label="Active filters" hidden></div>
       </div>
     </section>
@@ -118,7 +119,7 @@
           </div>
         </div>
         <div id="component-selection" class="selection-summary" role="status">No component selected — showing the core infrastructure backbone available under the current filters.</div>
-        <div class="diagram-legend" aria-label="Diagram legend"><span><i class="legend-box"></i> Component</span><span><i class="legend-path"></i> Communication path</span><span>Click a box or path to filter</span></div>
+        <div class="diagram-legend" aria-label="Diagram legend"><span><i class="legend-box"></i> Component</span><span><i class="legend-path"></i> Communication path</span><span><i class="legend-doc"></i> Includes VCF 9.1 documentation</span><span>Click a box or path to filter</span></div>
         <div class="topology-scroll" tabindex="0" aria-label="Scrollable VCF infrastructure diagram"><svg id="topology" class="topology" viewBox="0 0 1500 925" role="group" aria-label="VCF infrastructure components and communication paths"></svg></div>
         <div id="path-ports" class="path-ports"><strong>Ports on the selected path</strong><p>Select a component box, then select a connected box or line. The exact source records remain available in the connection list.</p></div>
       </div>
@@ -127,7 +128,7 @@
 
     <section id="list-view" hidden aria-label="Connection list">
       <div class="card table-card">
-        <div class="data-heading"><div><h2>Connection records</h2><p>Exact published endpoints. Expand a record for service details and provenance.</p></div><span id="list-count" class="count-badge"></span></div>
+        <div class="data-heading"><div><h2>Connection records</h2><p>Exact source endpoints from the Ports tool and cited documentation. Expand a record for service details and provenance.</p></div><span id="list-count" class="count-badge"></span></div>
         <div class="data-controls">
           <label>Sort by <select id="list-sort" class="clr-select"><option value="product">Product</option><option value="source">Source</option><option value="destination">Destination</option><option value="port">Port</option><option value="protocol">Protocol</option></select></label>
           <label>Order <select id="list-order" class="clr-select"><option value="asc">Ascending</option><option value="desc">Descending</option></select></label>
@@ -145,7 +146,7 @@
         <div class="matrix-legend" aria-label="Published entry count legend"><span><i class="density-one"></i>1 entry</span><span><i class="density-few"></i>2–9 entries</span><span><i class="density-many"></i>10+ entries</span><span>— No matching entry</span></div>
         <div class="matrix-controls"><div role="group" aria-label="Source pages"><strong>Sources</strong><button id="source-prev" class="btn btn-sm" type="button" aria-label="Previous sources">←</button><span id="source-page" aria-live="polite"></span><button id="source-next" class="btn btn-sm" type="button" aria-label="Next sources">→</button></div><div role="group" aria-label="Destination pages"><strong>Destinations</strong><button id="dest-prev" class="btn btn-sm" type="button" aria-label="Previous destinations">←</button><span id="dest-page" aria-live="polite"></span><button id="dest-next" class="btn btn-sm" type="button" aria-label="Next destinations">→</button></div></div>
         <div id="matrix" class="table-scroll" tabindex="0" aria-label="Scrollable endpoint matrix"></div>
-        <p class="view-help">Counts are published entries, not unique firewall rules. “—” does not mean communication is unnecessary. Reverse connections are never inferred, including entries classified as “Both”.</p>
+        <p class="view-help">Counts are source entries, not unique firewall rules. “—” does not mean communication is unnecessary. Reverse connections are never inferred, including entries classified as “Both”.</p>
       </div>
     </section>
 
@@ -156,8 +157,12 @@
         <div><h2 class="card-title">External internet destinations</h2><p class="card-subtitle">Internet domains named by the filtered records — derived from endpoint labels and service descriptions, never inferred. Endpoint labels marked in the connection list carry a domain badge. VMware domains include legacy Lastline services (vDefend ATP cloud); VMware is a Broadcom division.</p></div>
       </div>
       <div class="card-block"><div id="domains-list"></div></div>
+      <div class="doc-notes">
+        <div class="data-heading"><div><h2>What the VCF 9.1 documents add</h2><p>Constraints quoted from TechDocs and knowledge base articles. They are not extra firewall rows.</p></div></div>
+        <ul id="doc-constraints"></ul>
+      </div>
       <div class="kb-urls">
-        <div class="data-heading"><div><h2>Public URL reference <span class="count-badge">Broadcom KB 327186</span></h2><p id="kb-retrieved" class="domains-empty">Depot, telemetry, compatibility, and licensing URLs required for online functionality.</p></div><a id="kb-link" class="btn btn-sm btn-link" href="https://knowledge.broadcom.com/external/article/327186" target="_blank" rel="noopener">Open KB 327186 ↗</a></div>
+        <div class="data-heading"><div><h2>Earlier versions <span class="count-badge">Broadcom KB 327186</span></h2><p id="kb-retrieved" class="domains-empty">The VCF 9.1 planning guide points to this article for earlier releases. VCF 9.1 public URLs are the documentation rows above.</p></div><a id="kb-link" class="btn btn-sm btn-link" href="https://knowledge.broadcom.com/external/article/327186" target="_blank" rel="noopener">Open KB 327186 ↗</a></div>
         <div id="kb-urls" class="table-scroll" tabindex="0" aria-label="Scrollable public URL reference"></div>
       </div>
     </section>
@@ -166,11 +171,12 @@
       <div class="card-header"><h2 class="card-title">Source &amp; version coverage</h2></div>
       <div class="card-block">
         <p id="provenance"></p>
-        <p>This snapshot includes only active, published entries explicitly assigned to releases mapped to VCF 9.1 by the official tool. Mapped patch and add-on versions are included; they are not all version 9.1. Choose a product and release for deployment-specific planning. No older-version fallback or invented connections are used.</p>
+        <p>The Ports tool snapshot includes only active, published entries explicitly assigned to releases mapped to VCF 9.1. Mapped patch and add-on versions are included; they are not all version 9.1. Documentation rows are a second source: each one cites the VCF 9.1 page it came from and is badged in the connection list. Choose a product, release, or source data filter for deployment-specific planning.</p>
         <details class="coverage-details"><summary>View included products, releases, and entry counts</summary><div id="coverage-list"></div></details>
         <p class="note"><strong>Diagram interpretation.</strong> The path view is an independent navigation layer inspired by the official VCF 9.1 Fleet Latency logical diagram. It groups exact endpoint labels into logical components but does not reproduce or enforce latency requirements. Lines represent records in this snapshot; they are not topology discovery, reachability tests, or inferred firewall rules. Validate latency requirements in the official diagram and current product documentation.</p>
         <p class="note"><strong>Planning aid, not a firewall policy.</strong> Review service descriptions and your enabled features. Validate requirements against the <a href="https://ports.broadcom.com/" target="_blank" rel="noopener">official Ports and Protocols tool</a> and product documentation before making changes. Source entries can overlap; this tool does not deduplicate or infer bidirectional firewall rules.</p>
-        <a class="btn btn-outline btn-sm" href="data/vcf-9.1.json" download>Download the complete JSON snapshot</a>
+        <a class="btn btn-outline btn-sm" href="data/vcf-9.1.json" download>Download the Ports tool snapshot</a>
+        <a class="btn btn-outline btn-sm" href="data/vcf-9.1-docs.json" download>Download the documentation catalogue</a>
       </div>
     </section>
   </div>

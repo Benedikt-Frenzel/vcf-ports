@@ -93,7 +93,7 @@ test('installer config import maps addressing and never touches credentials', ()
 });
 test('firewall templates fill mapped addresses and keep placeholders for gaps', () => {
   const rules = [
-    {source:'vcenter', destination:'esx', port:'443', protocol:'TCP', records:2, purposes:new Set(['vCenter management']), classifications:new Set(['Both'])},
+    {source:'vcenter', destination:'esx', port:'443', protocol:'TCP', records:2, purposes:new Set(['vCenter management']), classifications:new Set(['Both']), origins:new Set(['ports','documentation']), citations:new Set(['https://techdocs.broadcom.com/example'])},
     {source:'nsx', destination:'esx', port:'902', protocol:'TCP', records:1, purposes:new Set(['host management']), classifications:new Set(['Outbound'])},
   ];
   const names = {vcenter:'vCenter', esx:'ESX Hosts', nsx:'NSX'};
@@ -102,9 +102,13 @@ test('firewall templates fill mapped addresses and keep placeholders for gaps', 
   assert.ok(csv.includes('"vc01.lab"'));
   assert.ok(csv.includes('<ESX Hosts IPs / FQDNs>'));
   assert.ok(csv.includes('"yes"') && csv.includes('"no"'));
+  assert.ok(csv.includes('"Ports tool; VCF 9.1 documentation"'));
+  assert.ok(csv.includes('"https://techdocs.broadcom.com/example"'));
   const md = toFirewallMarkdown(rules, {}, names, {snapshot:'test'});
   assert.ok(md.startsWith('# VCF 9.1 firewall request'));
   assert.ok(md.includes('| vc01.lab |') === false && md.includes('<vCenter IPs / FQDNs>'));
+  assert.ok(md.includes('Ports tool; VCF 9.1 documentation'));
+  assert.ok(md.includes('https://techdocs.broadcom.com/example'));
   assert.equal(isBidirectional(['Both','Outbound']), true);
   assert.equal(isBidirectional(['Outbound']), false);
 });
