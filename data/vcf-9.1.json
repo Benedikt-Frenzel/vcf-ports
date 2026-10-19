@@ -1,6 +1,6 @@
 {
   "vcfVersion": "9.1",
-  "retrievedAt": "2026-09-21T11:37:17.412862+00:00",
+  "retrievedAt": "2026-10-19T11:44:03.201365+00:00",
   "source": "https://ports.broadcom.com/",
   "apiBase": "https://ports.esp.spespg1.vmw.saas.broadcom.com/manage/view/v1/",
   "versionId": "6a02e78a1809eae1a581f675",
@@ -31,7 +31,7 @@
           "name": "9.1.1"
         }
       ],
-      "rowCount": 171
+      "rowCount": 211
     },
     {
       "id": "6a02e294eccee231013d6d15",
@@ -43,7 +43,7 @@
           "name": "9.1.0"
         }
       ],
-      "rowCount": 62
+      "rowCount": 59
     },
     {
       "id": "6a02e263eccee231013d6d14",
@@ -91,7 +91,7 @@
           "name": "9.1.0"
         }
       ],
-      "rowCount": 23
+      "rowCount": 24
     },
     {
       "id": "6a0313621809eae1a581f68f",
@@ -123,7 +123,7 @@
           "name": "9.1.1"
         }
       ],
-      "rowCount": 72
+      "rowCount": 70
     },
     {
       "id": "68591cf948aeb10d5142cfc6",
@@ -217,9 +217,13 @@
         {
           "id": "6a05a3d69044725e5fb7c252",
           "name": "32.1.1"
+        },
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
         }
       ],
-      "rowCount": 32
+      "rowCount": 42
     },
     {
       "id": "6a06b6a41809eae1a581f6ac",
@@ -5494,6 +5498,766 @@
       ]
     },
     {
+      "id": "6abcc0560f89d2eff4a10112",
+      "port": "179",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "BGP routing - Antrea/Calico dynamic routing (BGP introduced in VCF 9.1)",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc0570f89d2eff4a10113",
+      "port": "51820",
+      "protocol": "UDP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "WireGuard tunnel - Antrea overlay encryption (introduced VCF 9.1)",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc0570f89d2eff4a10114",
+      "port": "51821",
+      "protocol": "UDP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "WireGuard multi-cluster gateway encryption (introduced VCF 9.1)",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2100f89d2eff4a1015f",
+      "port": "53",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "DNS endpoint (TCP) - CoreDNS resolution within VKS Guest Cluster",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2110f89d2eff4a10160",
+      "port": "53",
+      "protocol": "UDP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "DNS endpoint (UDP) - CoreDNS resolution within VKS Guest Cluster",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2110f89d2eff4a10161",
+      "port": "323",
+      "protocol": "UDP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "NTP via chronyd - time sync on control plane node",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2120f89d2eff4a10162",
+      "port": "2112",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Prometheus metrics - vSphere CSI controller",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2120f89d2eff4a10163",
+      "port": "2113",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Prometheus metrics - vSphere Syncer",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2130f89d2eff4a10164",
+      "port": "2379",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "etcd client API - cluster state management",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2130f89d2eff4a10165",
+      "port": "2380",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "etcd peer communication - inter-node replication",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2140f89d2eff4a10166",
+      "port": "2381",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "etcd probe port - health check endpoint",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2140f89d2eff4a10167",
+      "port": "4443",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "HTTPS metrics - metrics-server",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2150f89d2eff4a10168",
+      "port": "4789",
+      "protocol": "UDP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "VXLAN tunnel - Antrea overlay pod-to-pod",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2150f89d2eff4a10169",
+      "port": "5000",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Docker Registry API - image registry service",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2160f89d2eff4a1016a",
+      "port": "5001",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Registry internal listener",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2160f89d2eff4a1016b",
+      "port": "5353",
+      "protocol": "UDP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "mDNS - systemd-resolve local DNS discovery",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2170f89d2eff4a1016c",
+      "port": "5443",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "guest-cluster secured endpoint - internal K8s API",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2170f89d2eff4a1016d",
+      "port": "6081",
+      "protocol": "UDP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Geneve tunnel - Antrea overlay pod-to-pod",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2180f89d2eff4a1016e",
+      "port": "6443",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Kubernetes API Server - kube-apiserver probe",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2180f89d2eff4a1016f",
+      "port": "7471",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "STT tunnel - Antrea overlay pod-to-pod",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2190f89d2eff4a10170",
+      "port": "8080",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Metrics - secretgen-controller",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2190f89d2eff4a10171",
+      "port": "8181",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Readiness probe - CoreDNS",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21a0f89d2eff4a10172",
+      "port": "9153",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Prometheus metrics - CoreDNS",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21a0f89d2eff4a10173",
+      "port": "9808",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Cluster Network IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Health check - vSphere CSI controller",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21b0f89d2eff4a10174",
+      "port": "9809",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "CSI Node Driver health check",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21b0f89d2eff4a10175",
+      "port": "10100",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "kapp-controller API - package management",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21c0f89d2eff4a10176",
+      "port": "10248",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Kubelet health check - node liveness probe",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21c0f89d2eff4a10177",
+      "port": "10249",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "kube-proxy metrics endpoint",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21c0f89d2eff4a10178",
+      "port": "10250",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Kubelet API - pod management (apiserver to kubelet)",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21d0f89d2eff4a10179",
+      "port": "10256",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "kube-proxy health check - LB health checks",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21d0f89d2eff4a1017a",
+      "port": "10257",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "kube-controller-manager probe port",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21e0f89d2eff4a1017b",
+      "port": "10259",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "kube-scheduler probe port",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21f0f89d2eff4a1017c",
+      "port": "10349",
+      "protocol": "TCP",
+      "source": "Guest Cluster Control Plane Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Antrea Controller API - network policy controller",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21f0f89d2eff4a1017d",
+      "port": "10350",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node (CP + Worker)",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Antrea Agent API - network agent, all nodes",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc21f0f89d2eff4a1017e",
+      "port": "10351",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Antrea cluster membership (gossip) - used for Egress feature",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2200f89d2eff4a1017f",
+      "port": "443, 1234, 1235",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "NSX Managers / Proxy to NSX Managers",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "NSX API (443) & control plane RPC (1234-1235) - Antrea-NSX adapter",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2200f89d2eff4a10180",
+      "port": "9099",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Calico node health probe (liveness/readiness)",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2210f89d2eff4a10181",
+      "port": "5473",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "Calico Felix agent metrics/status",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2220f89d2eff4a10182",
+      "port": "22",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "SSH - remote node access/administration",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
+      "id": "6abcc2220f89d2eff4a10183",
+      "port": "44001",
+      "protocol": "TCP",
+      "source": "Guest Cluster Node",
+      "destination": "Guest Cluster Node IP",
+      "purpose": "VKS Guest Cluster",
+      "serviceDescription": "containerd socket listener - container runtime mgmt",
+      "classification": "N/A",
+      "publishDate": "2026-09-27T00:00:00Z",
+      "product": "vCenter",
+      "productId": "695f68c48f450aef4863a665",
+      "releases": [
+        {
+          "id": "6a02ee2c4aec70d0faf926e4",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
       "id": "6a1656029044725e5fb7c2fa",
       "port": "22",
       "protocol": "TCP",
@@ -5881,63 +6645,6 @@
       "destination": "NSX Manager",
       "purpose": "LCP to CCP (NSX RPC)",
       "serviceDescription": "Local Control Plane (LCP) on host transport nodes to Central Control Plane (CCP) on NSX Manager.",
-      "classification": "Inbound",
-      "publishDate": "2026-05-24T00:00:00Z",
-      "product": "NSX",
-      "productId": "6a02e294eccee231013d6d15",
-      "releases": [
-        {
-          "id": "6a02fed95887ef25317099d0",
-          "name": "9.1.0"
-        }
-      ]
-    },
-    {
-      "id": "6a1656039044725e5fb7c30f",
-      "port": "5671",
-      "protocol": "TCP",
-      "source": "NSX Manager",
-      "destination": "NSX Manager",
-      "purpose": "NSX RPC (AMQP)",
-      "serviceDescription": "AMQP-based NSX RPC messaging between NSX Manager cluster nodes.",
-      "classification": "Inbound",
-      "publishDate": "2026-05-24T00:00:00Z",
-      "product": "NSX",
-      "productId": "6a02e294eccee231013d6d15",
-      "releases": [
-        {
-          "id": "6a02fed95887ef25317099d0",
-          "name": "9.1.0"
-        }
-      ]
-    },
-    {
-      "id": "6a1656039044725e5fb7c310",
-      "port": "5671",
-      "protocol": "TCP",
-      "source": "NSX Edge nodes",
-      "destination": "NSX Manager",
-      "purpose": "NSX RPC (AMQP)",
-      "serviceDescription": "AMQP-based NSX RPC messaging from NSX Edge nodes to NSX Manager.",
-      "classification": "Inbound",
-      "publishDate": "2026-05-24T00:00:00Z",
-      "product": "NSX",
-      "productId": "6a02e294eccee231013d6d15",
-      "releases": [
-        {
-          "id": "6a02fed95887ef25317099d0",
-          "name": "9.1.0"
-        }
-      ]
-    },
-    {
-      "id": "6a1656039044725e5fb7c311",
-      "port": "5671",
-      "protocol": "TCP",
-      "source": "Host Transport Node",
-      "destination": "NSX Manager",
-      "purpose": "NSX RPC (AMQP)",
-      "serviceDescription": "AMQP-based NSX RPC messaging from host transport nodes to NSX Manager.",
       "classification": "Inbound",
       "publishDate": "2026-05-24T00:00:00Z",
       "product": "NSX",
@@ -10586,6 +11293,25 @@
       ]
     },
     {
+      "id": "6acf3ac50f89d2eff4a1018f",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "VCF Operations",
+      "destination": "VCF Automation",
+      "purpose": "real-time catalog cost calculation, capacity-aware workload placement, and closed-loop day-2 resource optimization via REST AP",
+      "serviceDescription": "real-time catalog cost calculation, capacity-aware workload placement, and closed-loop day-2 resource optimization via REST AP",
+      "classification": "N/A",
+      "publishDate": "2026-10-11T00:00:00Z",
+      "product": "VCF Automation",
+      "productId": "68591d1548aeb10d5142cfc7",
+      "releases": [
+        {
+          "id": "68591ea048aeb10d5142cfcd",
+          "name": "9.1.0"
+        }
+      ]
+    },
+    {
       "id": "6a03141a5887ef2531709a56",
       "port": "22",
       "protocol": "TCP",
@@ -11244,25 +11970,6 @@
       ]
     },
     {
-      "id": "6a031f4c4aec70d0faf92943",
-      "port": "6514",
-      "protocol": "TCP",
-      "source": "Log Sources",
-      "destination": "VCF Operations for Logs Management IP address",
-      "purpose": "Syslog over TLS",
-      "serviceDescription": "Syslog ingestion over TLS (alternate port).",
-      "classification": "Inbound",
-      "publishDate": "2026-05-09T00:00:00Z",
-      "product": "Log Management",
-      "productId": "6859219a48aeb10d5142cfd0",
-      "releases": [
-        {
-          "id": "6a031ef64aec70d0faf9293b",
-          "name": "9.1.0"
-        }
-      ]
-    },
-    {
       "id": "6a031f4c4aec70d0faf92945",
       "port": "9543",
       "protocol": "TCP",
@@ -11327,25 +12034,6 @@
       "destination": "VCF Operations for Logs CPLF",
       "purpose": "CPLF Syslog over TLS",
       "serviceDescription": "Syslog ingestion to the CPLF over TLS.",
-      "classification": "Inbound",
-      "publishDate": "2026-05-09T00:00:00Z",
-      "product": "Log Management",
-      "productId": "6859219a48aeb10d5142cfd0",
-      "releases": [
-        {
-          "id": "6a031ef64aec70d0faf9293b",
-          "name": "9.1.0"
-        }
-      ]
-    },
-    {
-      "id": "6a031f4d4aec70d0faf92949",
-      "port": "6514",
-      "protocol": "TCP",
-      "source": "Log Sources",
-      "destination": "VCF Operations for Logs CPLF",
-      "purpose": "CPLF Syslog over TLS",
-      "serviceDescription": "Syslog ingestion to the CPLF over TLS (alternate port).",
       "classification": "Inbound",
       "publishDate": "2026-05-09T00:00:00Z",
       "product": "Log Management",
@@ -23126,6 +23814,196 @@
         {
           "id": "6a05a3d69044725e5fb7c252",
           "name": "32.1.1"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e40f89d2eff4a10185",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Controller",
+      "destination": "Avi Operations",
+      "purpose": "portal REST traffic plus AI Assistant WebSocket relay",
+      "serviceDescription": "Avi controller integration with Avi operations",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e40f89d2eff4a10186",
+      "port": "53",
+      "protocol": "TCP/UDP",
+      "source": "Avi Operations",
+      "destination": "DNS Servers",
+      "purpose": "DNS",
+      "serviceDescription": "DNS resolution by Avi Operations",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e40f89d2eff4a10187",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Operations",
+      "destination": "*.prod.nsxti.vmware.com",
+      "purpose": "Required for AI Assistant(bundle download)",
+      "serviceDescription": "vDefend Threat Intelligence Service ",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e40f89d2eff4a10188",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Operations",
+      "destination": "*.aiplatform.googleapis.com",
+      "purpose": "Required for AI Assistant",
+      "serviceDescription": "AI Assistant",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a10189",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Operations",
+      "destination": "apiplatform.*.rep.googleapis.com",
+      "purpose": "Required for AI Assistant",
+      "serviceDescription": "AI Assistant",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a1018a",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Operations",
+      "destination": "*.services.ai.azure.com",
+      "purpose": "Required for AI Assistant for threat defense",
+      "serviceDescription": "AI Assistant",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a1018b",
+      "port": "443",
+      "protocol": "TCP",
+      "source": "Avi Operations",
+      "destination": "vdefend-intelligent-assist.broadcom.com",
+      "purpose": "Required for AI Assistant",
+      "serviceDescription": "AI Assistant",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a1018c",
+      "port": "123",
+      "protocol": "UDP",
+      "source": "Avi Operations",
+      "destination": "NTP Server",
+      "purpose": "NTP",
+      "serviceDescription": "Time synchronization for Avi Operations",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a1018d",
+      "port": "514",
+      "protocol": "UDP",
+      "source": "Avi Operations",
+      "destination": "Syslog Servers",
+      "purpose": "Syslog",
+      "serviceDescription": "Syslog forwarding from Avi Operations.",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
+        }
+      ]
+    },
+    {
+      "id": "6acdf7e50f89d2eff4a1018e",
+      "port": "443",
+      "protocol": "HTTPS",
+      "source": "Browser for Avi Controller",
+      "destination": "lumos.broadcom.com",
+      "purpose": "in-product feedback",
+      "serviceDescription": "In-Product Feedback module",
+      "classification": "Outbound",
+      "publishDate": "2026-10-10T00:00:00Z",
+      "product": "Avi Load Balancer",
+      "productId": "6a05a3864020a053ebfe0771",
+      "releases": [
+        {
+          "id": "6acde9130f89d2eff4a10184",
+          "name": "32.1.4"
         }
       ]
     },
