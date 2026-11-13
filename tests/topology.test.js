@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, environmentKeyForEndpoint, explainPath, filterByComponents, firewallRules, pathDerivations, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
+import { COMPONENTS, ENVIRONMENT_SERVICES, aliasReason, componentForEndpoint, environmentKeyForEndpoint, explainPath, filterByComponents, firewallRules, isHostLocal, pathDerivations, topologyLinks, topologyPath, uniquePorts } from '../topology.js';
 const data = JSON.parse(readFileSync(new URL('../data/vcf-9.1.json', import.meta.url)));
 
 test('known latency-diagram endpoint labels map to logical components', () => {
@@ -32,7 +32,13 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'License Server Management IP address':'licensing',
     'VCF Installer Management IP address':'installer',
     'VCF Installer (internal/loopback)':'installer',
-    'DNS Resolvers':'infrastructure'
+    'DNS Resolvers':'infrastructure',
+    'Microsoft Active Directory Domain Controllers':'infrastructure',
+    'LDAP (server)':'infrastructure',
+    'User Identity Provider (external)':'infrastructure',
+    'User OTel Collector (external)':'infrastructure',
+    'Tenant-provided Postgres (DSM)':'infrastructure',
+    'VCF Identity Broker':'identity'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
 });
@@ -41,7 +47,7 @@ test('every selected path can explain the alias that placed each published label
     const explained = explainPath(row);
     assert.deepEqual(topologyPath(row), [explained.source.componentId, explained.destination.componentId]);
     for (const side of [explained.source, explained.destination]) {
-      assert.ok(['label','internet-domain','unmatched','product-boundary'].includes(side.kind), side.kind);
+      assert.ok(['label','internet-domain','external-system','unmatched','product-boundary'].includes(side.kind), side.kind);
       assert.ok(aliasReason(side));
       if (side.kind === 'label' || side.kind === 'product-boundary') assert.match(side.kind === 'product-boundary' ? row.source + row.destination : row.source + ' ' + row.destination, new RegExp(side.matched.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
     }
@@ -99,16 +105,23 @@ test('firewall rules aggregate per direction, port, and protocol', () => {
     {source:'vCenter Server Management IP address',destination:'ESX Management IP addresses',port:'443',protocol:'TCP',purpose:'management',classification:'Both',product:'ESX'},
     {source:'vCenter Server Management IP address',destination:'ESX Management IP addresses',port:'902',protocol:'TCP',purpose:'host agent',classification:'Outbound',product:'vCenter'},
     {source:'vCenter Server Management IP address',destination:'vCenter Server Management IP address',port:'443',protocol:'TCP',purpose:'internal',classification:'Cluster Internal',product:'vCenter'},
+    {source:'vCenter Server (internal/loopback)',destination:'vCenter Server (internal/loopback)',port:'5432',protocol:'TCP',purpose:'database',classification:'Internal',product:'vCenter'},
   ];
   const rules = firewallRules(rows);
-  assert.equal(rules.length, 2);
+  assert.equal(rules.length, 3, 'host-local loopback is dropped, vCenter-to-vCenter stays');
+  const intra = rules.find(rule => rule.source === 'vcenter' && rule.destination === 'vcenter');
+  assert.equal(intra?.intraComponent, true);
+  assert.ok(rules.filter(rule => rule !== intra).every(rule => rule.intraComponent === false));
   assert.equal(rules[0].port, '443');
   assert.equal(rules[0].records, 2);
   assert.deepEqual([...rules[0].purposes], ['management']);
   const snapshotRules = firewallRules(data.rows);
   const total = snapshotRules.reduce((sum, rule) => sum + rule.records, 0);
-  const drawn = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return environmentKeyForEndpoint(row.source,s) === environmentKeyForEndpoint(row.destination,d); }).length;
-  assert.equal(total, drawn);
+  const exported = data.rows.length - data.rows.filter(row => { const [s,d] = topologyPath(row); return environmentKeyForEndpoint(row.source,s) === environmentKeyForEndpoint(row.destination,d) && isHostLocal(row); }).length;
+  assert.equal(total, exported);
+  // Site-to-site and east-west paths must be part of the firewall request.
+  assert.ok(snapshotRules.some(rule => rule.source === 'esx' && rule.destination === 'esx' && rule.port === '8000'), 'vMotion ESX to ESX 8000/TCP');
+  assert.ok(snapshotRules.some(rule => rule.source === 'hcx' && rule.destination === 'hcx'), 'HCX site to site');
   const environmentIds=new Set([...COMPONENTS,...ENVIRONMENT_SERVICES].map(item => item.id));
   assert.ok(snapshotRules.every(rule => environmentIds.has(rule.source) && environmentIds.has(rule.destination)));
 });
@@ -135,7 +148,8 @@ test('VCF Installer has its own source-backed deployment paths', () => {
   assert.equal(installerRows.length,42);
   const links=topologyLinks(installerRows);
   const destinations=new Set(links.flatMap(link => [link.source,link.destination]).filter(id => id !== 'installer'));
-  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','identity','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
+  // Installer -> Active Directory is an external system, not Identity Broker.
+  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
     assert.ok(destinations.has(id), `missing Installer path to ${id}`);
   assert.ok(links.every(link => link.source === 'installer' || link.destination === 'installer'));
 });
