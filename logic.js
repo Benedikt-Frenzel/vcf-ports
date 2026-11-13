@@ -121,7 +121,7 @@ function templateAddress(mapping, componentId, names) {
   return `<${names[componentId] || componentId} IPs / FQDNs>`;
 }
 export function toFirewallCSV(rules, mapping, names) {
-  const keys = ['Source address', 'Destination address', 'Port', 'Protocol', 'Bi-directional', 'Purpose', 'Classification', 'Records', 'Source component', 'Destination component'];
+  const keys = ['Source address', 'Destination address', 'Port', 'Protocol', 'Bi-directional', 'Purpose', 'Classification', 'Records', 'Source component', 'Destination component', 'Scope'];
   const lines = [keys.map(csvCell).join(',')];
   for (const rule of rules) {
     lines.push([
@@ -130,29 +130,30 @@ export function toFirewallCSV(rules, mapping, names) {
       rule.port || 'Not specified',
       rule.protocol || 'Not specified',
       isBidirectional(rule.classifications) ? 'yes' : 'no',
-      [...rule.purposes][0] || 'Not specified',
+      [...rule.purposes].join('; ') || 'Not specified',
       [...rule.classifications].join('; '),
       rule.records,
       names[rule.source] || rule.source,
       names[rule.destination] || rule.destination,
+      rule.intraComponent ? 'intra-component' : 'inter-component',
     ].map(csvCell).join(','));
   }
   return '\uFEFF' + lines.join('\r\n');
 }
 export function toFirewallMarkdown(rules, mapping, names, meta = {}) {
   const cell = value => String(value ?? '').replaceAll('|', '\\|');
-  const rows = rules.map(rule => `| ${cell(templateAddress(mapping, rule.source, names))} | ${cell(templateAddress(mapping, rule.destination, names))} | ${cell(rule.port || 'Not specified')} | ${cell(rule.protocol || 'Not specified')} | ${isBidirectional(rule.classifications) ? 'yes' : 'no'} | ${cell([...rule.purposes][0] || 'Not specified')} | ${rule.records} |`);
+  const rows = rules.map(rule => `| ${cell(templateAddress(mapping, rule.source, names))} | ${cell(templateAddress(mapping, rule.destination, names))} | ${cell(rule.port || 'Not specified')} | ${cell(rule.protocol || 'Not specified')} | ${isBidirectional(rule.classifications) ? 'yes' : 'no'} | ${cell([...rule.purposes].join('; ') || 'Not specified')} | ${rule.intraComponent ? 'intra' : 'inter'} | ${rule.records} |`);
   return [
     `# VCF 9.1 firewall request`,
     '',
     `Generated ${new Date().toISOString().slice(0, 10)} from the VCF Ports communication explorer.`,
     meta.snapshot ? `Snapshot: ${meta.snapshot} (${meta.rows ?? rules.reduce((total, rule) => total + rule.records, 0)} published entries).` : '',
-    mapping && Object.keys(mapping).length ? 'Addresses come from the browser-local environment mapping; `<Component> IPs / FQDNs>` marks gaps to fill in.' : 'All addresses are placeholders — map your environment first or replace them with your values.',
+    mapping && Object.keys(mapping).length ? 'Addresses come from the browser-local environment mapping; `<Component IPs / FQDNs>` marks gaps to fill in.' : 'All addresses are placeholders — map your environment first or replace them with your values.',
     '',
     'Planning aid only: validate every rule against current product documentation and your deployment before applying it. Counts are published source entries, not deduplicated firewall rules.',
     '',
-    '| Source | Destination | Port | Protocol | Bi-directional | Purpose | Records |',
-    '| --- | --- | --- | --- | --- | --- | --- |',
+    '| Source | Destination | Port | Protocol | Bi-directional | Purpose | Scope | Records |',
+    '| --- | --- | --- | --- | --- | --- | --- | --- |',
     ...rows,
     '',
   ].filter(line => line !== '').join('\n');

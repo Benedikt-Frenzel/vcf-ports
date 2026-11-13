@@ -102,6 +102,9 @@ test('firewall templates fill mapped addresses and keep placeholders for gaps', 
   assert.ok(csv.includes('"vc01.lab"'));
   assert.ok(csv.includes('<ESX Hosts IPs / FQDNs>'));
   assert.ok(csv.includes('"yes"') && csv.includes('"no"'));
+  assert.ok(csv.includes('"Scope"') && csv.includes('"inter-component"'));
+  const multi = toFirewallCSV([{...rules[0], purposes:new Set(['a','b']), intraComponent:true}], {}, names);
+  assert.ok(multi.includes('"a; b"') && multi.includes('"intra-component"'));
   const md = toFirewallMarkdown(rules, {}, names, {snapshot:'test'});
   assert.ok(md.startsWith('# VCF 9.1 firewall request'));
   assert.ok(md.includes('| vc01.lab |') === false && md.includes('<vCenter IPs / FQDNs>'));

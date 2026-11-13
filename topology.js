@@ -187,15 +187,23 @@ export function uniquePorts(rows) {
 }
 // Aggregate filtered rows into firewall request rules: one row per component
 // direction, port, and protocol, with unique purposes and classifications.
+// Only host-local traffic is left out. Traffic between two members of the same
+// component (vMotion to a remote ESX, HCX site to site, vSAN, NSX cluster) does
+// cross networks and firewalls, so it stays in the template, flagged as
+// intra-component.
+const HOST_LOCAL = /loopback|localhost|\b127\.0\.0\.1\b/i;
+export function isHostLocal(row) {
+  return HOST_LOCAL.test(String(row.source || '')) || HOST_LOCAL.test(String(row.destination || ''));
+}
 export function firewallRules(rows) {
   const groups = new Map();
   for (const row of rows) {
     const [sourceComponent, destinationComponent] = topologyPath(row);
     const source = environmentKeyForEndpoint(row.source, sourceComponent);
     const destination = environmentKeyForEndpoint(row.destination, destinationComponent);
-    if (source === destination) continue;
+    if (source === destination && isHostLocal(row)) continue;
     const key = `${source}|${destination}|${row.port || 'Not specified'}|${row.protocol || 'Not specified'}`;
-    const rule = groups.get(key) || {source, destination, port: row.port || 'Not specified', protocol: row.protocol || 'Not specified', records: 0, purposes: new Set(), classifications: new Set()};
+    const rule = groups.get(key) || {source, destination, intraComponent: source === destination, port: row.port || 'Not specified', protocol: row.protocol || 'Not specified', records: 0, purposes: new Set(), classifications: new Set()};
     rule.records++;
     if (row.purpose && row.purpose !== '-') rule.purposes.add(row.purpose);
     if (row.classification) rule.classifications.add(row.classification);
