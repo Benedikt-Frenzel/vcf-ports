@@ -37,9 +37,15 @@ mise run normalize-snapshot  # Apply the data normaliser without re-fetching
 
 Pull requests run validation without deployment. All asset paths are relative, so both `https://user.github.io/repository/` and a custom domain work. Hosting is not provisioned until the repository is pushed and Pages is enabled.
 
-A separate `.github/workflows/data-refresh.yml` runs every Monday at 06:00 UTC: it refreshes `data/vcf-9.1.json` from the Broadcom Ports API and `data/kb327186-urls.json` from the public KB article, then opens a pull request with the refreshed data (and re-runs the same tests and build as a regular PR). The PR is yours to review and merge when you are happy — auto-merging is intentionally disabled so you always see what changed. `workflow_dispatch` lets you trigger the same flow on demand.
+A separate `.github/workflows/data-refresh.yml` runs every Monday at 06:00 UTC: it refreshes `data/vcf-9.1.json` from the Broadcom Ports API and `data/kb327186-urls.json` from the public KB article, runs the full build and test suite (`mise run build`), and then opens or updates a single pull request on the fixed branch `data/weekly-refresh`. Auto-merging is intentionally disabled so you always see what changed. `workflow_dispatch` lets you trigger the same flow on demand. If a scheduled refresh fails, the workflow opens an issue "Weekly data refresh failed" (or comments on the open one) with a link to the run.
 
-The PR creation step uses `secrets.PR_TOKEN` if defined, otherwise falls back to `secrets.GITHUB_TOKEN`. The default `GITHUB_TOKEN` only opens PRs when the repository (or its owner organisation) has **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"** enabled. To skip that setting, create a fine-scoped Personal Access Token (Settings → Developer settings → PAT, classic with `repo` scope, or fine-grained with `Contents: read and write` + `Pull requests: read and write`) and store it as the `PR_TOKEN` repository secret.
+Pull requests created with the default `GITHUB_TOKEN` do not trigger other workflows, so the refresh PR then shows no checks (the tests already ran in the refresh job). To get regular PR checks, use one of these tokens; the workflow picks the first available:
+
+1. **GitHub App (recommended):** create an app with *Contents: read and write* and *Pull requests: read and write*, install it on this repository only, store its client ID as the repository variable `REFRESH_APP_CLIENT_ID` and its private key as the secret `REFRESH_APP_PRIVATE_KEY`.
+2. **Fine-grained personal access token:** limited to this repository with *Contents: read and write* and *Pull requests: read and write*, stored as the secret `PR_TOKEN`.
+3. **Fallback:** `GITHUB_TOKEN`, which requires **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"**.
+
+Third-party actions are pinned to commit SHAs.
 
 ## Features
 
