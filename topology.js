@@ -63,6 +63,10 @@ const rules = [
   {id:'clients', pattern:/workstation|management client|administration system|web browser|ui client|api client|user \/ client|site recovery ui|application client|backup server/i}
 ];
 const VMSP_PLATFORM = /VCF Management Services Platform/i;
+// Customer-operated systems that the product rules would otherwise pull into a
+// VCF box (e.g. "Microsoft Active Directory Domain Controllers" into Identity
+// Broker). They stay under Infrastructure & External Services.
+const EXTERNAL_SYSTEM = /\(external\)|\bactive directory\b|\bldap \(server\)|\buser identity provider\b|\btenant-provided\b/i;
 // Why a published endpoint label lands on a diagram box. Rule order is the
 // assignment order: the first match wins, and explicit internet domains never
 // enter the product rules.
@@ -70,6 +74,8 @@ export function explainEndpoint(endpoint) {
   const text = String(endpoint || '');
   const domains = [...domainsInText(text)];
   if (domains.length) return {componentId:'infrastructure', kind:'internet-domain', matched:domains.join(', ')};
+  const external = text.match(EXTERNAL_SYSTEM);
+  if (external) return {componentId:'infrastructure', kind:'external-system', matched:external[0]};
   for (const rule of rules) {
     const match = text.match(rule.pattern);
     if (match) return {componentId:rule.id, kind:'label', matched:match[0]};
@@ -101,6 +107,7 @@ export function explainPath(row) {
 }
 export function aliasReason(alias) {
   if (alias.kind === 'internet-domain') return `Explicit internet domain (${alias.matched}) stays external, even when the host label contains a product name.`;
+  if (alias.kind === 'external-system') return `Customer-operated external system (“${alias.matched}”) stays under Infrastructure & External Services.`;
   if (alias.kind === 'unmatched') return 'No alias rule matched, so the label stays under Infrastructure & External Services.';
   if (alias.kind === 'product-boundary') return `The label matched “${alias.matched}”, which would be VCF Management Services, but the owning product is VCF Automation.`;
   return `First matching alias rule, on “${alias.matched}”.`;

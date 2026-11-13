@@ -32,7 +32,13 @@ test('known latency-diagram endpoint labels map to logical components', () => {
     'License Server Management IP address':'licensing',
     'VCF Installer Management IP address':'installer',
     'VCF Installer (internal/loopback)':'installer',
-    'DNS Resolvers':'infrastructure'
+    'DNS Resolvers':'infrastructure',
+    'Microsoft Active Directory Domain Controllers':'infrastructure',
+    'LDAP (server)':'infrastructure',
+    'User Identity Provider (external)':'infrastructure',
+    'User OTel Collector (external)':'infrastructure',
+    'Tenant-provided Postgres (DSM)':'infrastructure',
+    'VCF Identity Broker':'identity'
   };
   for (const [endpoint, expected] of Object.entries(cases)) assert.equal(componentForEndpoint(endpoint), expected, endpoint);
 });
@@ -41,7 +47,7 @@ test('every selected path can explain the alias that placed each published label
     const explained = explainPath(row);
     assert.deepEqual(topologyPath(row), [explained.source.componentId, explained.destination.componentId]);
     for (const side of [explained.source, explained.destination]) {
-      assert.ok(['label','internet-domain','unmatched','product-boundary'].includes(side.kind), side.kind);
+      assert.ok(['label','internet-domain','external-system','unmatched','product-boundary'].includes(side.kind), side.kind);
       assert.ok(aliasReason(side));
       if (side.kind === 'label' || side.kind === 'product-boundary') assert.match(side.kind === 'product-boundary' ? row.source + row.destination : row.source + ' ' + row.destination, new RegExp(side.matched.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
     }
@@ -142,7 +148,8 @@ test('VCF Installer has its own source-backed deployment paths', () => {
   assert.equal(installerRows.length,42);
   const links=topologyLinks(installerRows);
   const destinations=new Set(links.flatMap(link => [link.source,link.destination]).filter(id => id !== 'installer'));
-  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','identity','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
+  // Installer -> Active Directory is an external system, not Identity Broker.
+  for (const id of ['automation','operations','logs','networks','management','sddc','vcenter','nsx','esx','vsan','supervisor','depot','clients','infrastructure'])
     assert.ok(destinations.has(id), `missing Installer path to ${id}`);
   assert.ok(links.every(link => link.source === 'installer' || link.destination === 'installer'));
 });
