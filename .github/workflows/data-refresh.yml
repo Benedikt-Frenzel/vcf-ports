@@ -15,9 +15,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     steps:
       - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
+      - uses: jdx/mise-action@c2a87611a18de5b3828c5652fe268e992400cb5c # v4.3.0
 
       - name: Refresh the VCF 9.1 ports snapshot
         run: mise run refresh-data
@@ -30,11 +31,22 @@ jobs:
       - name: Rebuild and verify the snapshot
         run: mise run build
 
-      - name: Open a pull request with the refreshed data
-        uses: peter-evans/create-pull-request@v8
+      # PRs opened with GITHUB_TOKEN do not trigger pull_request workflows.
+      # A GitHub App token (preferred) or a fine-grained PR_TOKEN does.
+      - name: Create GitHub App token
+        id: app-token
+        if: ${{ vars.REFRESH_APP_CLIENT_ID != '' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
+          client-id: ${{ vars.REFRESH_APP_CLIENT_ID }}
+          private-key: ${{ secrets.REFRESH_APP_PRIVATE_KEY }}
+
+      - name: Open a pull request with the refreshed data
+        uses: peter-evans/create-pull-request@3ffccacd46053766916f087ce41d627c0b8cf2d1 # v8.1.3
+        with:
+          # Fixed branch: one refresh PR that is updated every week instead of
+          # a new PR per run (PRs #21-#23 piled up with the timestamp suffix).
           branch: data/weekly-refresh
-          branch-suffix: timestamp
           commit-message: 'data: weekly snapshot refresh'
           title: 'Weekly VCF 9.1 snapshot refresh'
           body: |
@@ -45,11 +57,23 @@ jobs:
               normalised by `scripts/data_normalize.py`.
             - KB 327186 public URL reference re-pulled when reachable.
 
-            The same tests and build run as on a normal PR, so a failing
-            run blocks this PR from being mergeable. Review the data diff
-            and merge when you are happy.
+            The refresh job already ran `mise run build` (all tests) before
+            opening this PR. PR checks run only when the PR was opened with
+            the GitHub App token or PR_TOKEN. Data-quality warnings are in
+            the job summary of the refresh run.
           add-paths: |
             data/vcf-9.1.json
             data/kb327186-urls.json
           delete-branch: true
-          token: ${{ secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token || secrets.PR_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Report a failed scheduled refresh as an issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title='Weekly data refresh failed'
+          number=$(gh issue list --state open --search "in:title \"$title\"" --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then gh issue comment "$number" --body "Failed again: $RUN_URL"
+          else gh issue create --title "$title" --body "Scheduled refresh failed: $RUN_URL"; fi
