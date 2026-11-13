@@ -14,6 +14,7 @@ from data_normalize import (  # noqa: E402
     normalise_port,
     normalise_protocol,
     normalise_row,
+    unknown_values,
 )
 
 
@@ -74,6 +75,17 @@ def test_row_keeps_other_fields_intact():
     assert cleaned['destination'] == 'esx'
 
 
+def test_unknown_classification_falls_back_and_keeps_raw_value():
+    # Regression for the 2026-10 refresh failure: upstream row with classification 'TLS'.
+    row = normalise_row({'id': 'x', 'port': '443', 'protocol': 'TCP', 'classification': 'TLS'})
+    assert row['classification'] == 'N/A'
+    assert row['classificationSource'] == 'TLS'
+    assert normalise_row(row) == row  # idempotent for normalize_snapshot.py
+    assert unknown_values([row]) == {'classification': ['TLS']}
+    assert 'classificationSource' not in normalise_row({'classification': '-'})
+    assert 'classificationSource' not in normalise_row({'classification': 'Incoming'})
+
+
 def test_normalised_snapshot_is_deduplicated():
     """The bundled snapshot must contain only canonical values."""
     from json import load
@@ -93,5 +105,6 @@ if __name__ == '__main__':
     test_classification_canonicalisation()
     test_port_canonicalisation()
     test_row_keeps_other_fields_intact()
+    test_unknown_classification_falls_back_and_keeps_raw_value()
     test_normalised_snapshot_is_deduplicated()
     print('data normaliser: all checks passed')

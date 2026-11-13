@@ -3,8 +3,7 @@
 
 Useful after the normaliser rules change but the API snapshot was already
 cached, or to deduplicate values without re-fetching from Broadcom.
-Refuses to overwrite an empty snapshot or one with fewer rows than the
-existing one.
+Refuses to overwrite an empty snapshot.
 """
 from __future__ import annotations
 
